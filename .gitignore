@@ -1,0 +1,23 @@
+# --- Java / Spring Boot ---
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+**/hs_err_pid*
+*.class
+*.log
+
+# --- Angular / Node ---
+**/node_modules/
+**/dist/
+*.local
+
+# --- IDEs / Sistema ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Google Credentials & Tokens
+**/credentials.json
+**/tokens/

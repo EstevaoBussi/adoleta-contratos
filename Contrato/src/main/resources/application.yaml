@@ -1,0 +1,21 @@
+  server.port: 8080
+
+  spring:
+  application:
+    name: Contrato
+
+
+  # ID da pasta do Google Drive
+  google:
+    drive:
+      folder-id: 16C34vvZCkm4goK6Zp4-Ps4--30s5sgzF
+
+  logging:
+    level:
+      org.springframework.web: DEBUG
+      com.adoleta: DEBUG
+
+  server:
+    error:
+      include-stacktrace: always
+      include-message: always
