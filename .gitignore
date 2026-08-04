@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # Compiled output
@@ -42,3 +43,28 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+=======
+# --- Java / Spring Boot ---
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+**/hs_err_pid*
+*.class
+*.log
+
+# --- Angular / Node ---
+**/node_modules/
+**/dist/
+*.local
+
+# --- IDEs / Sistema ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Google Credentials & Tokens
+**/credentials.json
+**/tokens/
+>>>>>>> 92f77c47a18b9c13b6171a12d629c10e86eb9d16

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AdoledaContractsWeb
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.19.
@@ -57,3 +58,36 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+=======
+# 📋 ADOLÊTA - Sistema de Gestão e Consulta de Contratos
+
+Sistema desenvolvido para automatizar e otimizar a busca e o gerenciamento de contratos integrados com o Google Drive para o buffet **ADOLÊTA**.
+
+---
+
+## 🚀 Tecnologias Utilizadas
+
+O projeto está estruturado em formato **Monorepo**, contendo o microsserviço no backend e a interface no front-end:
+
+### **Backend**
+* **Java** (JDK 17+)
+* **Spring Boot**
+* **Spring Web / REST API**
+* **Google Drive API** (Integração de arquivos em nuvem)
+* **Maven** (Gerenciador de dependências)
+
+### **Front-end**
+* **Angular** (Standalone Components)
+* **TypeScript**
+* **RxJS**
+* **Bootstrap / CSS**
+
+---
+
+## 📂 Estrutura do Repositório
+
+```text
+adoleta-contratos/
+├── backend/        # Código-fonte da API Spring Boot
+└── frontend/       # Aplicação em Angular
+>>>>>>> 92f77c47a18b9c13b6171a12d629c10e86eb9d16
