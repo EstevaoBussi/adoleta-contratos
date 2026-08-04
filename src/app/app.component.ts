@@ -17,6 +17,7 @@ import { ContractDetailDto } from './models/contract.model';
 export class AppComponent {
   @ViewChild(ContractFormComponent) formComponent!: ContractFormComponent;
 
+  // Declaração da propriedade que controla a aba ativa
   activeTab: 'home' | 'list' | 'form' = 'home';
 
   openNewContract(): void {
@@ -37,14 +38,12 @@ export class AppComponent {
       this.formComponent.currentFileId = contractDetail.fileId || null;
       this.formComponent.message = '';
       
-      // Preenche os dados do evento
       this.formComponent.contractForm.patchValue({
         fileId: contractDetail.fileId,
         fileName: contractDetail.fileName,
         event: contractDetail.event
       });
 
-      // Preenche a lista de pagamentos
       this.formComponent.payments.clear();
       if (contractDetail.payments) {
         contractDetail.payments.forEach(p => {

@@ -1,0 +1,20 @@
+/* Esconde elementos na hora de imprimir */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-contract, #printable-contract * {
+    visibility: visible;
+  }
+  #printable-contract {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
