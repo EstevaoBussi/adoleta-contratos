@@ -4,6 +4,7 @@ package com.adoleta.google.contrato.controller;
 import com.adoleta.google.contrato.dto.ContractDetailDto;
 import com.adoleta.google.contrato.dto.ContractSummaryDto;
 import com.adoleta.google.contrato.service.ContractService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,7 +55,7 @@ public class ContractController {
      * Cria um novo arquivo de planilha no Drive formatado como "YYYY-MM-DD - NOME CLIENTE".
      */
     @PostMapping
-    public ResponseEntity<ContractSummaryDto> createContract(@RequestBody ContractDetailDto request) {
+    public ResponseEntity<ContractSummaryDto> createContract(@RequestBody @Valid ContractDetailDto request) {
         try {
             ContractSummaryDto createdContract = contractService.createContract(request            );
             return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);

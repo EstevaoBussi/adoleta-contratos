@@ -6,8 +6,11 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.sheets.v4.Sheets;
@@ -25,6 +28,16 @@ public class GoogleConfig {
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
     @Bean
+    public com.google.api.services.calendar.Calendar calendar(com.google.api.client.auth.oauth2.Credential credential) throws Exception {
+        com.google.api.client.http.javanet.NetHttpTransport httpTransport = com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport();
+        com.google.api.client.json.gson.GsonFactory jsonFactory = com.google.api.client.json.gson.GsonFactory.getDefaultInstance();
+
+        return new com.google.api.services.calendar.Calendar.Builder(httpTransport, jsonFactory, credential)
+                .setApplicationName("Adolêta Contratos")
+                .build();
+    }
+
+    @Bean
     public Credential googleCredential() throws Exception {
         InputStream in = getClass().getResourceAsStream("/credentials.json");
         if (in == null) {
@@ -37,7 +50,8 @@ public class GoogleConfig {
 
         List<String> scopes = List.of(
                 DriveScopes.DRIVE,
-                SheetsScopes.SPREADSHEETS
+                SheetsScopes.SPREADSHEETS,
+                CalendarScopes.CALENDAR
         );
 
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(

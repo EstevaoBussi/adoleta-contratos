@@ -4,7 +4,6 @@
   application:
     name: Contrato
 
-
   # ID da pasta do Google Drive
   google:
     drive:
