@@ -4,13 +4,25 @@ import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractListComponent } from './contract-list/contract-list.component';
 import { ContractDetailDto } from './models/contract.model';
 
+// Importações do Angular Material para a interface
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatCardModule } from '@angular/material/card'; // <-- Adicionado para suportar os cards da Home
+
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
     ContractFormComponent,
-    ContractListComponent
+    ContractListComponent,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatCardModule // <-- Adicionado aqui nos imports do componente
   ],
   templateUrl: './app.html'
 })

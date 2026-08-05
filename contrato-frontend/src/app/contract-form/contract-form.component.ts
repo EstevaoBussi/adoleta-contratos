@@ -4,10 +4,25 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } fr
 import { ContractService } from '../services/contract.spec';
 import { ContractDetailDto } from '../models/contract.model';
 
+// Importações do Angular Material
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+
 @Component({
   selector: 'app-contract-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule
+  ],
   templateUrl: './contract-form.component.html'
 })
 export class ContractFormComponent implements OnInit {
@@ -29,6 +44,9 @@ export class ContractFormComponent implements OnInit {
       event: this.fb.group({
         clientName: ['', Validators.required],
         eventDate: ['', Validators.required],
+        guestCount: [50, [Validators.required, Validators.min(1)]],
+        startTime: ['13:30', Validators.required],
+        endTime: ['17:30', Validators.required],
         installmentValue: [0, [Validators.required, Validators.min(0)]],
         totalValue: [0, [Validators.required, Validators.min(0)]],
         bolo: [''],
@@ -38,8 +56,15 @@ export class ContractFormComponent implements OnInit {
       payments: this.fb.array([])
     });
 
-    // Recalcula saldos sempre que o valor total ou os pagamentos mudarem
     this.contractForm.get('event.totalValue')?.valueChanges.subscribe(() => this.recalculateBalances());
+  }
+
+  // Função para preenchimento rápido dos horários
+  setShift(start: string, end: string): void {
+    this.contractForm.get('event')?.patchValue({
+      startTime: start,
+      endTime: end
+    });
   }
 
   get payments(): FormArray {
@@ -53,7 +78,6 @@ export class ContractFormComponent implements OnInit {
       pendingAmount: [{ value: 0, disabled: false }]
     });
 
-    // Recalcula automaticamente se o valor pago mudar
     paymentGroup.get('amount')?.valueChanges.subscribe(() => this.recalculateBalances());
 
     this.payments.push(paymentGroup);
@@ -65,9 +89,6 @@ export class ContractFormComponent implements OnInit {
     this.recalculateBalances();
   }
 
-  /**
-   * Recalcula o saldo pendente linha por linha de pagamento
-   */
   recalculateBalances(): void {
     const totalValue = Number(this.contractForm.get('event.totalValue')?.value) || 0;
     let accumulatedPaid = 0;
@@ -87,17 +108,14 @@ export class ContractFormComponent implements OnInit {
 
   saveContract(): void {
     if (this.contractForm.invalid) {
-      this.message = 'Por favor, preencha todos os campos obrigatórios.';
+      this.message = 'Por favor, preencha todos os campos obrigatórios corretamente.';
       return;
     }
 
     const payload: ContractDetailDto = this.contractForm.getRawValue();
-
-    // Se a variável global ou o campo do form tiver o ID, tratamos como atualização
     const fileIdToUse = this.currentFileId || this.contractForm.get('fileId')?.value;
 
     if (fileIdToUse) {
-      // Passa o ID explicitamente para o service atualizar o arquivo correto
       this.contractService.update(fileIdToUse, payload).subscribe({
         next: () => {
           this.currentFileId = fileIdToUse;
@@ -106,16 +124,11 @@ export class ContractFormComponent implements OnInit {
         error: (err) => this.message = 'Erro ao atualizar contrato: ' + err.message
       });
     } else {
-      // Se é a primeira vez, cria e armazena o fileId retornado
       this.contractService.create(payload).subscribe({
         next: (res) => {
-          console.log("--- DEBUG SALVAR CONTRATO ---", res);
           this.currentFileId = res.id;
-          
-          // ATUALIZA O CAMPO FILEID NO FORMULÁRIO PARA GUARDAR O ESTADO
           this.contractForm.patchValue({ id: res.id });
-          
-          this.message = `Contrato criado com sucesso! Agora as próximas alterações vão atualizar esta mesma planilha. ID: ${res.id}`;
+          this.message = `Contrato criado com sucesso! ID: ${res.id}`;
         },
         error: (err) => this.message = 'Erro ao criar contrato: ' + err.message
       });

@@ -38,44 +38,53 @@
 
   <!-- PAINEL PRINCIPAL -->
   <main>
-    <!-- TELA HOME -->
+    <!-- TELA HOME COM ANGULAR MATERIAL -->
     <div *ngIf="activeTab === 'home'">
-      <div class="p-4 mb-4 bg-light rounded-3 border border-warning-subtle">
-        <div class="container-fluid py-2">
-          <h2 class="display-6 fw-bold text-dark">Painel de Controle</h2>
+      
+      <!-- Banner de Boas-Vindas com mat-card -->
+      <mat-card class="mb-4 p-3 shadow-sm" style="background-color: #fafafa; border-radius: 12px; border: 1px solid #ffecb3;">
+        <mat-card-content class="py-2">
+          <h2 class="display-6 fw-bold text-dark mb-2">Painel de Controle</h2>
           <p class="col-md-10 fs-6 text-secondary mb-0">
             Crie novos orçamentos ou edite registros de pagamentos diretamente sincronizados com as planilhas no Google Drive.
           </p>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
 
+      <!-- Grid de Ações Rápidas -->
       <div class="row g-4">
         <!-- CARD NOVO CONTRATO -->
         <div class="col-md-6">
-          <div class="card h-100 border-0 shadow-sm" (click)="openNewContract()" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
-              <div class="display-4 text-success mb-3"><i class="bi bi-file-earmark-plus"></i></div>
-              <h4 class="card-title fw-bold">Cadastrar Novo Contrato</h4>
-              <p class="card-text text-muted">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
-              <button class="btn btn-success mt-2 fw-semibold">
-                Iniciar Cadastro <i class="bi bi-arrow-right"></i>
+          <mat-card class="h-100 text-center p-3 shadow-sm hover-card" (click)="openNewContract()" style="cursor: pointer; border-radius: 12px;">
+            <mat-card-content class="py-4">
+              <div class="text-success mb-3">
+                <mat-icon color="primary" style="transform: scale(2); margin: 15px 0;">note_add</mat-icon>
+              </div>
+              <h4 class="card-title fw-bold mb-2 mt-3">Cadastrar Novo Contrato</h4>
+              <p class="card-text text-muted mb-4">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
+              
+              <button mat-flat-button color="primary" class="fw-semibold px-4">
+                Iniciar Cadastro <mat-icon iconPositionEnd>arrow_forward</mat-icon>
               </button>
-            </div>
-          </div>
+            </mat-card-content>
+          </mat-card>
         </div>
 
         <!-- CARD LISTA DE CONTRATOS -->
         <div class="col-md-6">
-          <div class="card h-100 border-0 shadow-sm" (click)="activeTab = 'list'" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
-              <div class="display-4 text-primary mb-3"><i class="bi bi-search"></i></div>
-              <h4 class="card-title fw-bold">Buscar & Editar Planilhas</h4>
-              <p class="card-text text-muted">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
-              <button class="btn btn-primary mt-2 fw-semibold">
-                Ver Lista Completa <i class="bi bi-arrow-right"></i>
+          <mat-card class="h-100 text-center p-3 shadow-sm hover-card" (click)="activeTab = 'list'" style="cursor: pointer; border-radius: 12px;">
+            <mat-card-content class="py-4">
+              <div class="text-primary mb-3">
+                <mat-icon color="accent" style="transform: scale(2); margin: 15px 0;">search</mat-icon>
+              </div>
+              <h4 class="card-title fw-bold mb-2 mt-3">Buscar & Editar Planilhas</h4>
+              <p class="card-text text-muted mb-4">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
+              
+              <button mat-flat-button color="accent" class="fw-semibold px-4">
+                Ver Lista Completa <mat-icon iconPositionEnd>arrow_forward</mat-icon>
               </button>
-            </div>
-          </div>
+            </mat-card-content>
+          </mat-card>
         </div>
       </div>
     </div>
