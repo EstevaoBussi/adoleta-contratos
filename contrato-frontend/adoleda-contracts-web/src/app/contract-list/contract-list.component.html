@@ -1,0 +1,80 @@
+<div class="card shadow-sm border-0">
+  <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+    <h3 class="h5 mb-0 fw-bold">
+      <i class="bi bi-folder-symlink-fill me-2"></i>Contratos Salvos - Google Drive
+    </h3>
+    <button (click)="onSearchChange()" class="btn btn-sm btn-light fw-semibold text-primary">
+      <i class="bi bi-arrow-clockwise me-1"></i> Atualizar Lista
+    </button>
+  </div>
+
+  <div class="card-body p-4">
+    <!-- Campo de Busca -->
+    <div class="row mb-4">
+      <div class="col-md-8 mx-auto">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (input)="onSearchChange()" 
+            placeholder="Buscar por nome do cliente ou ID da planilha..." 
+            class="form-control border-start-0 ps-0 shadow-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de Carregamento (Spinner) -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-2 text-muted fw-semibold">Buscando planilhas no Google Drive...</p>
+    </div>
+
+    <!-- Mensagem de Erro -->
+    <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+      <div>{{ errorMessage }}</div>
+    </div>
+
+    <!-- Tabela de Contratos -->
+    <div *ngIf="!loading && filteredContracts.length > 0" class="table-responsive">
+      <table class="table table-hover align-middle border">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="py-3">Nome da Planilha / Cliente</th>
+            <th scope="col" class="py-3">ID do Arquivo (Google Drive)</th>
+            <th scope="col" class="py-3 text-center" style="width: 140px;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let contract of filteredContracts">
+            <td class="fw-semibold text-dark">
+              <i class="bi bi-file-earmark-spreadsheet text-success me-2 fs-5"></i>
+              {{ contract.name }}
+            </td>
+            <td>
+              <span class="badge bg-light text-secondary font-monospace border px-2 py-1">
+                {{ contract.id }}
+              </span>
+            </td>
+            <td class="text-center">
+              <button (click)="editContract(contract.id)" class="btn btn-sm btn-outline-primary fw-semibold">
+                <i class="bi bi-pencil-square me-1"></i> Editar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Nenhum contrato encontrado -->
+    <div *ngIf="!loading && filteredContracts.length === 0 && !errorMessage" class="text-center py-5 text-muted">
+      <i class="bi bi-inbox fs-1 text-secondary"></i>
+      <p class="mt-2 mb-0">Nenhum contrato localizado no momento.</p>
+    </div>
+  </div>
+</div>

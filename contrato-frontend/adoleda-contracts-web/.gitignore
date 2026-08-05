@@ -1,0 +1,70 @@
+<<<<<<< HEAD
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# System files
+.DS_Store
+Thumbs.db
+=======
+# --- Java / Spring Boot ---
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+**/hs_err_pid*
+*.class
+*.log
+
+# --- Angular / Node ---
+**/node_modules/
+**/dist/
+*.local
+
+# --- IDEs / Sistema ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Google Credentials & Tokens
+**/credentials.json
+**/tokens/
+>>>>>>> 92f77c47a18b9c13b6171a12d629c10e86eb9d16

@@ -1,0 +1,95 @@
+<div class="container py-4">
+  
+  <!-- CABEÇALHO / NAVBAR -->
+  <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-2 border-warning">
+    <div class="d-flex align-items-center">
+      <!-- Logotipo do Buffet -->
+      <img src="/images/logo.jpeg" alt="ADOLETA KIDS" style="height: 55px;" class="me-3">
+      <div>
+        <small class="text-muted no-print">Gestão de Contratos e Pagamentos</small>
+        <small class="text-muted d-none d-print-block">Comprovante de Contrato e Saldo de Evento</small>
+      </div>
+    </div>
+
+    <nav class="btn-group mt-2 mt-sm-0" role="group">
+      <button 
+        type="button"
+        (click)="activeTab = 'home'" 
+        class="btn btn-outline-primary"
+        [class.active]="activeTab === 'home'">
+        <i class="bi bi-house-door-fill me-1"></i> Início
+      </button>
+
+      <button 
+        type="button"
+        (click)="activeTab = 'list'" 
+        class="btn btn-outline-primary"
+        [class.active]="activeTab === 'list'">
+        <i class="bi bi-list-check me-1"></i> Contratos
+      </button>
+
+      <button 
+        type="button"
+        (click)="openNewContract()" 
+        class="btn btn-success">
+        <i class="bi bi-plus-circle-fill me-1"></i> Novo Contrato
+      </button>
+    </nav>
+  </header>
+
+  <!-- PAINEL PRINCIPAL -->
+  <main>
+    <!-- TELA HOME -->
+    <div *ngIf="activeTab === 'home'">
+      <div class="p-4 mb-4 bg-light rounded-3 border border-warning-subtle">
+        <div class="container-fluid py-2">
+          <h2 class="display-6 fw-bold text-dark">Painel de Controle</h2>
+          <p class="col-md-10 fs-6 text-secondary mb-0">
+            Crie novos orçamentos ou edite registros de pagamentos diretamente sincronizados com as planilhas no Google Drive.
+          </p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- CARD NOVO CONTRATO -->
+        <div class="col-md-6">
+          <div class="card h-100 border-0 shadow-sm" (click)="openNewContract()" style="cursor: pointer;">
+            <div class="card-body p-4 text-center">
+              <div class="display-4 text-success mb-3"><i class="bi bi-file-earmark-plus"></i></div>
+              <h4 class="card-title fw-bold">Cadastrar Novo Contrato</h4>
+              <p class="card-text text-muted">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
+              <button class="btn btn-success mt-2 fw-semibold">
+                Iniciar Cadastro <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD LISTA DE CONTRATOS -->
+        <div class="col-md-6">
+          <div class="card h-100 border-0 shadow-sm" (click)="activeTab = 'list'" style="cursor: pointer;">
+            <div class="card-body p-4 text-center">
+              <div class="display-4 text-primary mb-3"><i class="bi bi-search"></i></div>
+              <h4 class="card-title fw-bold">Buscar & Editar Planilhas</h4>
+              <p class="card-text text-muted">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
+              <button class="btn btn-primary mt-2 fw-semibold">
+                Ver Lista Completa <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA LISTA DE CONTRATOS -->
+    <div [style.display]="activeTab === 'list' ? 'block' : 'none'">
+      <app-contract-list (onSelectContract)="onContractSelected($event)"></app-contract-list>
+    </div>
+
+    <!-- TELA FORMULÁRIO -->
+    <div [style.display]="activeTab === 'form' ? 'block' : 'none'">
+      <app-contract-form></app-contract-form>
+    </div>
+  </main>
+
+</div>
