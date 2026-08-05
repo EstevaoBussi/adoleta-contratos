@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ContractDetailDto, ContractSummaryDto } from '../models/contract.model';
+import { environment } from '../../environments/environment'; // Importe o environment
 
 @Injectable({
   providedIn: 'root'
 })
 export class ContractService {
-  // Endereço base da sua API Spring Boot
-  private readonly API_URL = 'http://localhost:8080/api/contracts';
+  // Usa o environment e concatena com o recurso de contracts
+  private readonly API_URL = `${environment.apiUrl}/api/contracts`;
 
   constructor(private http: HttpClient) {}
 

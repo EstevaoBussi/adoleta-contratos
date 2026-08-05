@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contracts")
-@CrossOrigin(origins = "http://localhost:4200") // Permite chamadas do frontend Angular
+@CrossOrigin(origins = "*") // Permite chamadas do frontend Angular
 public class ContractController {
 
     private final ContractService contractService;
