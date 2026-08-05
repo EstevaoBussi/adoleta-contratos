@@ -1,1 +1,51 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   SIDENAV ESCURO - CAIXA E BLOCOS 100% RETOS
+   ========================================================================== */
+.dark-sidenav.mat-drawer, 
+.dark-sidenav.mat-sidenav {
+  background-color: #1e222d !important;
+  color: #ffffff !important;
+  border-right: none !important;
+  border-top-right-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+  border-radius: 0px !important;
+}
+
+.dark-sidenav {
+  .menu-link {
+    color: #cbd5e0 !important;
+    transition: background-color 0.2s ease;
+    border-radius: 0px !important;
+
+    mat-icon {
+      color: #94a3b8 !important;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #ffffff !important;
+
+      mat-icon {
+        color: #ffffff !important;
+      }
+    }
+
+    &.active-menu-item {
+      background-color: #d97706 !important; /* Laranja de destaque */
+      color: #ffffff !important;
+      border-left: 4px solid #ffffff !important;
+      border-radius: 0px !important;
+
+      mat-icon {
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  .text-uppercase {
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 0.65rem !important;
+    letter-spacing: 0.5px;
+  }
+}

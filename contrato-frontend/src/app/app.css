@@ -1,0 +1,54 @@
+/* ==========================================================================
+   ESTILIZAÇÃO DO MENU LATERAL ESCURO (SIDENAV) - GLOBAL (styles.scss)
+   ========================================================================== */
+.dark-sidenav {
+  background-color: #1e222d !important;
+  color: #ffffff !important;
+  border-right: none !important;
+
+  /* Variáveis nativas do Angular Material para forçar o tema escuro */
+  --mat-list-item-label-text-color: #cbd5e0 !important;
+  --mat-list-item-hover-label-text-color: #ffffff !important;
+  --mat-list-item-focus-label-text-color: #ffffff !important;
+  --mat-list-item-leading-icon-color: #94a3b8 !important;
+  --mat-list-item-hover-leading-icon-color: #ffffff !important;
+
+  .mat-mdc-list-item {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    padding-left: 16px !important;
+    width: 100% !important;
+
+    span, a, p, div, mat-icon {
+      color: #cbd5e0 !important;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      
+      span, a, p, div, mat-icon {
+        color: #ffffff !important;
+      }
+    }
+
+    &.active-menu-item {
+      background-color: #d97706 !important; /* Laranja de destaque */
+      border-left: 4px solid #ffffff !important;
+      
+      span, a, p, div, mat-icon {
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  .text-uppercase {
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.5px;
+    padding-left: 16px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    display: block;
+  }
+}

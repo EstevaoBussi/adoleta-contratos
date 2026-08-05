@@ -1,10 +1,10 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
+import { ContractFormComponent } from './contract-form/contract-form.component';
+import { ContractListComponent } from './contract-list/contract-list.component';
 
-const routes: Routes = [];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }
+export const routes: Routes = [
+  { path: '', redirectTo: 'list', pathMatch: 'full' },
+  { path: 'list', component: ContractListComponent },
+  { path: 'new', component: ContractFormComponent },
+  // Adicione outras rotas conforme necessário
+];

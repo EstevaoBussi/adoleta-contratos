@@ -4,19 +4,36 @@ import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractListComponent } from './contract-list/contract-list.component';
 import { ContractDetailDto } from './models/contract.model';
 
+// Importações do Angular Material para a interface e menu lateral
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatCardModule } from '@angular/material/card';
+import { MatSidenavModule } from '@angular/material/sidenav'; // <-- Adicionado para o menu lateral
+import { MatListModule } from '@angular/material/list';         // <-- Adicionado para os itens da lista do menu
+
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
     ContractFormComponent,
-    ContractListComponent
+    ContractListComponent,
+    MatToolbarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTabsModule,
+    MatCardModule,
+    MatSidenavModule, // <-- Registrado aqui
+    MatListModule     // <-- Registrado aqui
   ],
   templateUrl: './app.html'
 })
 export class AppComponent {
   @ViewChild(ContractFormComponent) formComponent!: ContractFormComponent;
 
+  // Declaração da propriedade que controla a aba ativa
   activeTab: 'home' | 'list' | 'form' = 'home';
 
   openNewContract(): void {
@@ -37,14 +54,12 @@ export class AppComponent {
       this.formComponent.currentFileId = contractDetail.fileId || null;
       this.formComponent.message = '';
       
-      // Preenche os dados do evento
       this.formComponent.contractForm.patchValue({
         fileId: contractDetail.fileId,
         fileName: contractDetail.fileName,
         event: contractDetail.event
       });
 
-      // Preenche a lista de pagamentos
       this.formComponent.payments.clear();
       if (contractDetail.payments) {
         contractDetail.payments.forEach(p => {

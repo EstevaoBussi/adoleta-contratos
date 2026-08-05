@@ -1,95 +1,136 @@
-<div class="container py-4">
+<mat-sidenav-container class="sidenav-container" style="height: 100vh;">
   
-  <!-- CABEÇALHO / NAVBAR -->
-  <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-2 border-warning">
-    <div class="d-flex align-items-center">
-      <!-- Logotipo do Buffet -->
-      <img src="/images/logo.jpeg" alt="ADOLETA KIDS" style="height: 55px;" class="me-3">
-      <div>
-        <small class="text-muted no-print">Gestão de Contratos e Pagamentos</small>
-        <small class="text-muted d-none d-print-block">Comprovante de Contrato e Saldo de Evento</small>
-      </div>
-    </div>
-
-    <nav class="btn-group mt-2 mt-sm-0" role="group">
-      <button 
-        type="button"
-        (click)="activeTab = 'home'" 
-        class="btn btn-outline-primary"
-        [class.active]="activeTab === 'home'">
-        <i class="bi bi-house-door-fill me-1"></i> Início
-      </button>
-
-      <button 
-        type="button"
-        (click)="activeTab = 'list'" 
-        class="btn btn-outline-primary"
-        [class.active]="activeTab === 'list'">
-        <i class="bi bi-list-check me-1"></i> Contratos
-      </button>
-
-      <button 
-        type="button"
-        (click)="openNewContract()" 
-        class="btn btn-success">
-        <i class="bi bi-plus-circle-fill me-1"></i> Novo Contrato
-      </button>
-    </nav>
-  </header>
-
-  <!-- PAINEL PRINCIPAL -->
-  <main>
-    <!-- TELA HOME -->
-    <div *ngIf="activeTab === 'home'">
-      <div class="p-4 mb-4 bg-light rounded-3 border border-warning-subtle">
-        <div class="container-fluid py-2">
-          <h2 class="display-6 fw-bold text-dark">Painel de Controle</h2>
-          <p class="col-md-10 fs-6 text-secondary mb-0">
-            Crie novos orçamentos ou edite registros de pagamentos diretamente sincronizados com as planilhas no Google Drive.
-          </p>
+  <!-- MENU LATERAL ESCURO -->
+  <mat-sidenav #drawer mode="side" opened class="dark-sidenav shadow" style="width: 260px;">
+    
+    <!-- Perfil do Usuário / Logotipo no Topo do Menu -->
+    <div class="p-3 border-bottom border-secondary d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <!-- Logotipo da Adolêta Kids -->
+        <img src="/images/logo.jpeg" alt="Adolêta Kids" style="width: 38px; height: 38px; object-fit: contain;" class="me-2 rounded-circle bg-white p-1">
+        <div>
+          <h6 class="mb-0 text-white fw-bold" style="font-size: 0.9rem;">Adolêta Kids</h6>
+          <small class="text-white-50" style="font-size: 0.75rem;">Sistema de Gestão</small>
         </div>
       </div>
+      <mat-icon class="text-white-50 fs-5">unfold_more</mat-icon>
+    </div>
 
-      <div class="row g-4">
-        <!-- CARD NOVO CONTRATO -->
-        <div class="col-md-6">
-          <div class="card h-100 border-0 shadow-sm" (click)="openNewContract()" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
-              <div class="display-4 text-success mb-3"><i class="bi bi-file-earmark-plus"></i></div>
-              <h4 class="card-title fw-bold">Cadastrar Novo Contrato</h4>
-              <p class="card-text text-muted">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
-              <button class="btn btn-success mt-2 fw-semibold">
-                Iniciar Cadastro <i class="bi bi-arrow-right"></i>
-              </button>
+    <!-- Navegação personalizada em bloco reto -->
+    <div class="py-2">
+      
+      <!-- Dashboard -->
+      <a (click)="activeTab = 'home'" [class.active-menu-item]="activeTab === 'home'" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+        <mat-icon class="me-3 text-secondary">dashboard</mat-icon>
+        <span class="fw-semibold">Dashboard</span>
+      </a>
+
+      <!-- Seção Contratos -->
+      <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contratos</div>
+      
+      <a (click)="activeTab = 'list'" [class.active-menu-item]="activeTab === 'list'" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+        <mat-icon class="me-3 text-secondary">list_alt</mat-icon>
+        <span class="fw-medium">Lista Completa</span>
+      </a>
+
+      <a (click)="openNewContract()" [class.active-menu-item]="activeTab === 'form'" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+        <mat-icon class="me-3 text-secondary">note_add</mat-icon>
+        <span class="fw-medium">Novo Contrato</span>
+      </a>
+
+      <!-- Seção Gestão -->
+      <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Gestão</div>
+      
+      <a class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary">
+        <mat-icon class="me-3">payments</mat-icon>
+        <span>Financeiro</span>
+      </a>
+
+      <a class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary">
+        <mat-icon class="me-3">bar_chart</mat-icon>
+        <span>Relatórios</span>
+      </a>
+
+    </div>
+  </mat-sidenav>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <mat-sidenav-content class="main-content bg-light d-flex flex-column">
+    
+    <!-- TOOLBAR SUPERIOR ESTILO ANGULAR -->
+    <mat-toolbar class="bg-dark text-white shadow-sm px-4 justify-content-between" style="background-color: #2b303b !important;">
+      <div class="d-flex align-items-center">
+        <button type="button" mat-icon-button (click)="drawer.toggle()" class="me-2 text-white">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="fw-bold" style="font-size: 1rem;">Adolêta Kids - Sistema de Gestão de Contratos</span>
+      </div>
+
+      <div class="d-flex align-items-center">
+        <button mat-icon-button class="text-white me-2">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-icon-button class="text-white">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <!-- ÁREA DINÂMICA DAS TELAS -->
+    <div class="container-fluid p-4 flex-grow-1">
+      
+      <!-- ABA HOME / DASHBOARD -->
+      <div *ngIf="activeTab === 'home'">
+        
+        <!-- Cards de Estatísticas (KPIs) -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-3 bg-white">
+              <div class="text-muted small fw-bold">CONTRATOS ATIVOS</div>
+              <div class="fs-3 fw-bold text-dark mt-1">345</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-3 bg-white">
+              <div class="text-muted small fw-bold">NOVOS HOJE</div>
+              <div class="fs-3 fw-bold text-dark mt-1">12</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-3 bg-white">
+              <div class="text-muted small fw-bold">AGENDA DA SEMANA</div>
+              <div class="fs-3 fw-bold text-dark mt-1">27 eventos</div>
             </div>
           </div>
         </div>
 
-        <!-- CARD LISTA DE CONTRATOS -->
-        <div class="col-md-6">
-          <div class="card h-100 border-0 shadow-sm" (click)="activeTab = 'list'" style="cursor: pointer;">
-            <div class="card-body p-4 text-center">
-              <div class="display-4 text-primary mb-3"><i class="bi bi-search"></i></div>
-              <h4 class="card-title fw-bold">Buscar & Editar Planilhas</h4>
-              <p class="card-text text-muted">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
-              <button class="btn btn-primary mt-2 fw-semibold">
-                Ver Lista Completa <i class="bi bi-arrow-right"></i>
-              </button>
+        <!-- Painel de Ações Rápidas -->
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 p-4 rounded-3">
+              <h4 class="fw-bold">Cadastrar Novo Contrato</h4>
+              <p class="text-muted">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
+              <button mat-flat-button color="primary" class="mt-auto align-self-start" (click)="openNewContract()">Iniciar Cadastro</button>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card shadow-sm border-0 h-100 p-4 rounded-3">
+              <h4 class="fw-bold">Buscar & Editar Planilhas</h4>
+              <p class="text-muted">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
+              <button mat-flat-button color="accent" class="mt-auto align-self-start text-white" (click)="activeTab = 'list'">Ver Lista Completa</button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- ABA LISTA -->
+      <app-contract-list *ngIf="activeTab === 'list'" (onSelectContract)="onContractSelected($event)"></app-contract-list>
+
+      <!-- ABA FORMULÁRIO -->
+      <app-contract-form *ngIf="activeTab === 'form'"></app-contract-form>
+
     </div>
 
-    <!-- TELA LISTA DE CONTRATOS -->
-    <div [style.display]="activeTab === 'list' ? 'block' : 'none'">
-      <app-contract-list (onSelectContract)="onContractSelected($event)"></app-contract-list>
-    </div>
-
-    <!-- TELA FORMULÁRIO -->
-    <div [style.display]="activeTab === 'form' ? 'block' : 'none'">
-      <app-contract-form></app-contract-form>
-    </div>
-  </main>
-
-</div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

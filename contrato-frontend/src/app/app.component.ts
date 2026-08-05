@@ -4,12 +4,14 @@ import { ContractFormComponent } from './contract-form/contract-form.component';
 import { ContractListComponent } from './contract-list/contract-list.component';
 import { ContractDetailDto } from './models/contract.model';
 
-// Importações do Angular Material para a interface
+// Importações do Angular Material para a interface e menu lateral
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatCardModule } from '@angular/material/card'; // <-- Adicionado para suportar os cards da Home
+import { MatCardModule } from '@angular/material/card';
+import { MatSidenavModule } from '@angular/material/sidenav'; // <-- Adicionado para o menu lateral
+import { MatListModule } from '@angular/material/list';         // <-- Adicionado para os itens da lista do menu
 
 @Component({
   selector: 'app-root',
@@ -22,7 +24,9 @@ import { MatCardModule } from '@angular/material/card'; // <-- Adicionado para s
     MatButtonModule,
     MatIconModule,
     MatTabsModule,
-    MatCardModule // <-- Adicionado aqui nos imports do componente
+    MatCardModule,
+    MatSidenavModule, // <-- Registrado aqui
+    MatListModule     // <-- Registrado aqui
   ],
   templateUrl: './app.html'
 })

@@ -1,7 +1,7 @@
 <mat-card class="shadow-sm border-0 mb-4" id="printable-contract" style="border-radius: 12px; overflow: hidden;">
   
-  <!-- CABEÇALHO DO COMPROVANTE -->
-  <mat-card-header class="bg-primary text-white py-3 px-4 d-flex justify-content-between align-items-center w-100" style="margin: 0; display: flex; align-items: center; justify-content: space-between;">
+  <!-- CABEÇALHO DO COMPROVANTE (Tom Neutro e Harmonioso) -->
+  <mat-card-header class="text-white py-3 px-4 d-flex justify-content-between align-items-center w-100" style="background-color: #2b303b !important; margin: 0; display: flex; align-items: center; justify-content: space-between;">
     <div class="d-flex align-items-center">
       <span class="fs-3 me-3">🎈</span>
       <div>
@@ -16,7 +16,7 @@
       <button *ngIf="currentFileId" type="button" (click)="printContract()" mat-stroked-button class="bg-white text-dark fw-semibold btn-sm">
         <mat-icon class="me-1">print</mat-icon> Imprimir / PDF
       </button>
-      <span *ngIf="currentFileId" class="badge bg-light text-primary font-monospace p-2" style="font-size: 0.85rem;">
+      <span *ngIf="currentFileId" class="badge bg-light text-dark font-monospace p-2 border" style="font-size: 0.85rem;">
         ID: {{ currentFileId }}
       </span>
     </div>
@@ -26,8 +26,8 @@
     <form [formGroup]="contractForm" (ngSubmit)="saveContract()">
       
       <!-- SEÇÃO 1: DADOS DO EVENTO -->
-      <h5 class="text-primary mb-3 border-bottom pb-2 fw-bold d-flex align-items-center">
-        <mat-icon class="me-2 no-print text-primary">event</mat-icon> Dados do Evento
+      <h5 class="text-dark mb-3 border-bottom pb-2 fw-bold d-flex align-items-center" style="color: #2b303b !important;">
+        <mat-icon class="me-2 no-print" style="color: #d97706;">event</mat-icon> Dados do Evento
       </h5>
       
       <div formGroupName="event" class="row g-3 mb-4">
@@ -58,11 +58,11 @@
         <div class="col-12 no-print">
           <label class="form-label small fw-semibold text-muted d-block mb-2">Seleção Rápida de Período (Google Calendar):</label>
           <div class="d-flex gap-2 mb-2">
-            <button type="button" mat-stroked-button color="primary" (click)="setShift('13:30', '17:30')" class="btn-sm">
-              <mat-icon>wb_sunny</mat-icon> Tarde (13:30 - 17:30)
+            <button type="button" mat-stroked-button (click)="setShift('13:30', '17:30')" class="btn-sm border-secondary text-dark">
+              <mat-icon class="text-warning">wb_sunny</mat-icon> Tarde (13:30 - 17:30)
             </button>
-            <button type="button" mat-stroked-button color="accent" (click)="setShift('19:30', '23:30')" class="btn-sm">
-              <mat-icon>nights_stay</mat-icon> Noite (19:30 - 23:30)
+            <button type="button" mat-stroked-button (click)="setShift('19:30', '23:30')" class="btn-sm border-secondary text-dark">
+              <mat-icon class="text-primary">nights_stay</mat-icon> Noite (19:30 - 23:30)
             </button>
           </div>
         </div>
@@ -148,11 +148,11 @@
 
       <!-- SEÇÃO 2: HISTÓRICO DE PAGAMENTOS -->
       <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-        <h5 class="text-primary mb-0 fw-bold d-flex align-items-center">
-          <mat-icon class="me-2 no-print text-primary">payments</mat-icon> Histórico de Pagamentos
+        <h5 class="text-dark mb-0 fw-bold d-flex align-items-center" style="color: #2b303b !important;">
+          <mat-icon class="me-2 no-print" style="color: #d97706;">payments</mat-icon> Histórico de Pagamentos
         </h5>
-        <button type="button" (click)="addPayment()" mat-stroked-button color="primary" class="no-print btn-sm">
-          <mat-icon>add</mat-icon> Adicionar Parcela
+        <button type="button" (click)="addPayment()" mat-stroked-button class="no-print btn-sm border-secondary text-dark">
+          <mat-icon class="text-success">add</mat-icon> Adicionar Parcela
         </button>
       </div>
 
@@ -198,7 +198,7 @@
 
       <!-- RODAPÉ E BOTÕES DE SALVAR -->
       <div class="d-grid gap-2 d-md-flex justify-content-md-end no-print mt-4">
-        <button type="submit" mat-flat-button [color]="currentFileId ? 'primary' : 'accent'" class="px-4 py-2 fw-bold">
+        <button type="submit" mat-flat-button class="px-4 py-2 fw-bold text-white" style="background-color: #d97706 !important;">
           <mat-icon>{{ currentFileId ? 'update' : 'cloud_upload' }}</mat-icon>
           {{ currentFileId ? 'Atualizar Contrato' : 'Salvar Contrato' }}
         </button>
