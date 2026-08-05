@@ -1,6 +1,9 @@
 export interface EventDto {
   clientName: string;
   eventDate: string;
+  guestCount: number;   
+  startTime: string;    
+  endTime: string;      
   installmentValue: number;
   totalValue: number;
   bolo: string;
