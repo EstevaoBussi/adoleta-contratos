@@ -7,7 +7,10 @@
   # ID da pasta do Google Drive
   google:
     drive:
-      folder-id: 16C34vvZCkm4goK6Zp4-Ps4--30s5sgzF
+      contrato-aberto-id: 1sDEVsbnv6oql6lN3xQtFS5i7M4rS3E9S
+      contrato-cancelado-id: 11xBV7NJCBqVXyqI5t_AzkNGQc5JAcd1s
+      contrato-realizado-id: 1L5SMp4LJFQ61M5PBnMEv2gAO5OZMS15V
+      contrato-quitado-id: 1Rv2ZYKvV8k4zP-z6-yV8K3bjzgL87KZg
 
   logging:
     level:

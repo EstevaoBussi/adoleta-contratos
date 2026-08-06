@@ -43,6 +43,18 @@
           </mat-form-field>
         </div>
 
+        <!-- STATUS DO CONTRATO (Visível apenas na tela/gestão) -->
+        <div class="col-md-6 no-print">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Status do Contrato</mat-label>
+            <mat-select [formControl]="$any(contractForm).get('status')">
+              <mat-option *ngFor="let s of statusList" [value]="s.value">
+                {{ s.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
         <!-- DATA DA FESTA -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100">

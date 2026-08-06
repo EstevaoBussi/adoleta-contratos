@@ -1,6 +1,5 @@
 package com.adoleta.google.contrato.controller;
 
-
 import com.adoleta.google.contrato.dto.ContractDetailDto;
 import com.adoleta.google.contrato.dto.ContractSummaryDto;
 import com.adoleta.google.contrato.service.ContractService;
@@ -8,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class ContractController {
 
     /**
      * 1. GET /api/contracts
-     * Lista todas as planilhas de contrato presentes na pasta do Google Drive.
+     * Lista todas as planilhas de contrato presentes nas pastas de status do Google Drive.
      */
     @GetMapping
     public ResponseEntity<List<ContractSummaryDto>> listContracts() {
@@ -51,40 +51,51 @@ public class ContractController {
     }
 
     /**
-     * 3. POST /api/contracts
-     * Cria um novo arquivo de planilha no Drive formatado como "YYYY-MM-DD - NOME CLIENTE".
+     * 3. POST /api/contracts?status=ABERTO
+     * Cria um novo arquivo de planilha no Drive e o direciona para a pasta do status correspondente.
      */
     @PostMapping
-    public ResponseEntity<ContractSummaryDto> createContract(@RequestBody @Valid ContractDetailDto request) {
-        try {
-            ContractSummaryDto createdContract = contractService.createContract(request            );
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);
-        } catch (Exception e) {
-            // ESSA LINHA É A CHAVE: Imprime o erro real no console/terminal
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-    }
-
-    /**
-     * 4. PUT /api/contracts/{fileId}
-     * Atualiza as informações do evento e a lista de pagamentos na planilha do Google Sheets.
-     */
-    @PutMapping("/{fileId}")
-    public ResponseEntity<Void> updateContract(
-            @PathVariable String fileId,
-            @RequestBody ContractDetailDto contractDetailDto
+    public ResponseEntity<ContractSummaryDto> createContract(
+            @RequestBody @Valid ContractDetailDto request,
+            @RequestParam(value = "status", defaultValue = "ABERTO") String status
     ) {
         try {
-            contractService.updateContract(fileId, contractDetailDto);
-            return ResponseEntity.noContent().build();
+            ContractSummaryDto createdContract = contractService.createContract(request, status);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);
+        } catch (ResponseStatusException e) {
+            // Propaga o status exato lançado pelo serviço (ex: 400 Bad Request)
+            return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
-     * Endpoint para buscar contratos cujo nome contenha o termo informado.
+     * 4. PUT /api/contracts/{fileId}?status=QUITADO
+     * Atualiza as informações, move o contrato de pasta no Drive e gerencia a agenda conforme o status.
+     */
+    @PutMapping("/{fileId}")
+    public ResponseEntity<Void> updateContract(
+            @PathVariable String fileId,
+            @RequestBody ContractDetailDto contractDetailDto,
+            @RequestParam(value = "status", defaultValue = "ABERTO") String status
+    ) {
+        try {
+            contractService.updateContract(fileId, contractDetailDto, status);
+            return ResponseEntity.noContent().build();
+        } catch (ResponseStatusException e) {
+            // AQUI ESTÁ A CHAVE: Se for uma regra de negócio (ResponseStatusException),
+            // devolvemos exatamente o status HTTP que ela carrega (400) em vez de fixar 500!
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Endpoint para buscar contratos cujo nome contenha o termo informado em todas as pastas de status.
      * Exemplo: GET /api/contracts/search?title=mariana
      */
     @GetMapping("/search")

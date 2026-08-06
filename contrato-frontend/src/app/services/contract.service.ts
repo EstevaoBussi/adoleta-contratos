@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ContractDetailDto, ContractSummaryDto } from '../models/contract.model';
-import { environment } from '../../environments/environment'; // Importe o environment
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -23,14 +23,16 @@ export class ContractService {
     return this.http.get<ContractDetailDto>(`${this.API_URL}/${fileId}`);
   }
 
-  // Criar novo contrato no Google Sheets via Spring (POST)
-  create(contract: ContractDetailDto): Observable<ContractSummaryDto> {
-    return this.http.post<ContractSummaryDto>(this.API_URL, contract);
+  // Criar novo contrato no Google Sheets via Spring (POST) - Aceita status opcionalmente
+  create(contract: ContractDetailDto, status: string = 'ABERTO'): Observable<ContractSummaryDto> {
+    const params = new HttpParams().set('status', status);
+    return this.http.post<ContractSummaryDto>(this.API_URL, contract, { params });
   }
 
-  // Atualizar contrato existente (PUT)
-  update(fileId: string, contract: ContractDetailDto): Observable<void> {
-    return this.http.put<void>(`${this.API_URL}/${fileId}`, contract);
+  // Atualizar contrato existente e alterar o status/pasta (PUT)
+  update(fileId: string, contract: ContractDetailDto, status: string = 'ABERTO'): Observable<void> {
+    const params = new HttpParams().set('status', status);
+    return this.http.put<void>(`${this.API_URL}/${fileId}`, contract, { params });
   }
 
   // Método novo para buscar por título no backend

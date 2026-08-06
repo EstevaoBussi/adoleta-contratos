@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select'; // Adicionado para o seletor de status
 
 @Component({
   selector: 'app-contract-form',
@@ -23,7 +24,8 @@ import { MatInputModule } from '@angular/material/input';
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatSelectModule // Adicionado nos imports
   ],
   templateUrl: './contract-form.component.html'
 })
@@ -40,6 +42,14 @@ export class ContractFormComponent implements OnInit {
   message: string = '';
   isSubmitting: boolean = false;
 
+  // Lista de status disponíveis para o buffet
+  readonly statusList = [
+    { value: 'ABERTO', label: 'Aberto' },
+    { value: 'CONFIRMADO', label: 'Confirmado' },
+    { value: 'REALIZADO', label: 'Realizado' },
+    { value: 'CANCELADO', label: 'Cancelado' }
+  ];
+
   ngOnInit(): void {
     this.initForm();
 
@@ -54,6 +64,7 @@ export class ContractFormComponent implements OnInit {
     this.contractForm = this.fb.group({
       fileId: [''],
       fileName: [''],
+      status: ['ABERTO', Validators.required], // Campo de status adicionado no form principal
       event: this.fb.group({
         clientName: ['', Validators.required],
         eventDate: ['', Validators.required],
@@ -74,10 +85,11 @@ export class ContractFormComponent implements OnInit {
 
   loadContractData(fileId: string): void {
     this.contractService.getById(fileId).subscribe({
-      next: (data) => {
+      next: (data: any) => { // Usado any caso o DTO ainda não tenha a propriedade status tipada rigidamente
         this.contractForm.patchValue({
           fileId: data.fileId,
           fileName: data.fileName,
+          status: data.status || 'ABERTO',
           event: data.event
         });
         this.cdr.detectChanges();
@@ -146,12 +158,23 @@ export class ContractFormComponent implements OnInit {
     this.message = 'Salvando contrato...';
     this.cdr.detectChanges();
 
-    const payload: ContractDetailDto = this.contractForm.getRawValue();
-    const fileIdToUse = this.currentFileId || this.contractForm.get('fileId')?.value;
+    // Extrai o status e o restante do payload do formulário
+    const formValues = this.contractForm.getRawValue();
+    const currentStatus = formValues.status || 'ABERTO';
+    
+    // Removemos a propriedade status do payload principal se o DTO do contrato não esperar ela no corpo JSON (enviamos via Query Param no service)
+    const payload: ContractDetailDto = {
+      fileId: formValues.fileId,
+      fileName: formValues.fileName,
+      event: formValues.event,
+      payments: formValues.payments
+    };
+
+    const fileIdToUse = this.currentFileId || formValues.fileId;
 
     if (fileIdToUse) {
-      // Modo Atualização
-      this.contractService.update(fileIdToUse, payload).pipe(
+      // Modo Atualização (Enviando o status via parâmetro que ajustamos no service)
+      this.contractService.update(fileIdToUse, payload, currentStatus).pipe(
         finalize(() => {
           this.isSubmitting = false;
           this.cdr.detectChanges();
@@ -168,8 +191,8 @@ export class ContractFormComponent implements OnInit {
         }
       });
     } else {
-      // Modo Criação
-      this.contractService.create(payload).pipe(
+      // Modo Criação (Enviando o status via parâmetro que ajustamos no service)
+      this.contractService.create(payload, currentStatus).pipe(
         finalize(() => {
           this.isSubmitting = false;
           this.cdr.detectChanges();

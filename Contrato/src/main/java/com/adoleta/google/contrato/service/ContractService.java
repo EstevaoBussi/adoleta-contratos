@@ -27,8 +27,20 @@ public class ContractService {
     private final Sheets sheets;
     private final Calendar calendar;
 
-    @Value("${google.drive.folder-id}")
+    @Value("${google.drive.folder-id:}")
     private String folderId;
+
+    @Value("${google.drive.contrato-aberto-id}")
+    private String folderAbertoId;
+
+    @Value("${google.drive.contrato-quitado-id}")
+    private String folderQuitadoId;
+
+    @Value("${google.drive.contrato-cancelado-id}")
+    private String folderCanceladoId;
+
+    @Value("${google.drive.contrato-realizado-id}")
+    private String folderRealizadoId;
 
     public ContractService(Drive drive, Sheets sheets, Calendar calendar) {
         this.drive = drive;
@@ -36,7 +48,6 @@ public class ContractService {
         this.calendar = calendar;
     }
 
-    // Método auxiliar genérico para executar chamadas com tentativa única de recuperação em caso de falha de conexão/token
     private <T> T executarComResiliencia(GoogleOperation<T> operation) throws Exception {
         int tentativas = 2;
         long tempoEsperaMs = 2000;
@@ -44,19 +55,18 @@ public class ContractService {
         for (int i = 1; i <= tentativas; i++) {
             try {
                 return operation.execute();
+            } catch (ResponseStatusException e) {
+                throw e;
             } catch (GoogleJsonResponseException e) {
-                // Se for erro de autenticação/permissão (401/403) ou erro de servidor do Google (5xx) e for a última tentativa, repassa
                 if (i == tentativas || (e.getStatusCode() != 401 && e.getStatusCode() != 403 && e.getStatusCode() < 500)) {
                     throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Erro na API do Google: " + e.getMessage(), e);
                 }
             } catch (IOException e) {
-                // Erros de rede/IO temporários
                 if (i == tentativas) {
                     throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Falha temporária de conexão com os serviços do Google. Tente novamente.", e);
                 }
             }
 
-            // Aguarda antes de tentar novamente
             try {
                 Thread.sleep(tempoEsperaMs);
             } catch (InterruptedException ie) {
@@ -72,21 +82,65 @@ public class ContractService {
         T execute() throws Exception;
     }
 
+    private String getFolderIdByStatus(String status) {
+        if (status == null) return folderAbertoId;
+        switch (status.toUpperCase()) {
+            case "QUITADO": return folderQuitadoId;
+            case "CANCELADO": return folderCanceladoId;
+            case "REALIZADO": return folderRealizadoId;
+            case "ABERTO":
+            default: return folderAbertoId;
+        }
+    }
+
+    private String descobrirStatusAtualDoArquivo(String fileId) throws Exception {
+        File file = drive.files().get(fileId).setFields("parents").execute();
+        if (file.getParents() != null) {
+            for (String parentId : file.getParents()) {
+                if (parentId.equals(folderQuitadoId)) return "QUITADO";
+                if (parentId.equals(folderCanceladoId)) return "CANCELADO";
+                if (parentId.equals(folderRealizadoId)) return "REALIZADO";
+                if (parentId.equals(folderAbertoId)) return "ABERTO";
+            }
+        }
+        return "ABERTO";
+    }
+
+    private void moverArquivoParaPasta(String fileId, String novoStatus) throws Exception {
+        String targetFolderId = getFolderIdByStatus(novoStatus);
+        if (targetFolderId == null || targetFolderId.isBlank()) return;
+
+        File file = drive.files().get(fileId).setFields("parents").execute();
+        StringBuilder previousParents = new StringBuilder();
+        if (file.getParents() != null) {
+            for (String parent : file.getParents()) {
+                previousParents.append(parent).append(",");
+            }
+        }
+
+        drive.files().update(fileId, null)
+                .setAddParents(targetFolderId)
+                .setRemoveParents(previousParents.toString())
+                .setSupportsAllDrives(true)
+                .setFields("id, parents")
+                .execute();
+    }
+
     public List<ContractSummaryDto> listContracts() throws Exception {
         return executarComResiliencia(() -> {
-            String query = String.format("'%s' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false", folderId);
+            List<String> folders = List.of(folderAbertoId, folderQuitadoId, folderCanceladoId, folderRealizadoId);
+            List<File> allFiles = new ArrayList<>();
 
-            FileList result = drive.files().list()
-                    .setQ(query)
-                    .setFields("files(id, name)")
-                    .execute();
-
-            List<File> files = result.getFiles();
-            if (files == null) {
-                return List.of();
+            for (String fId : folders) {
+                if (fId == null || fId.isBlank()) continue;
+                String query = String.format("'%s' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false", fId);
+                FileList result = drive.files().list().setQ(query).setFields("files(id, name)").execute();
+                if (result.getFiles() != null) {
+                    allFiles.addAll(result.getFiles());
+                }
             }
 
-            return files.stream()
+            return allFiles.stream()
                     .map(f -> new ContractSummaryDto(f.getId(), f.getName()))
                     .toList();
         });
@@ -96,6 +150,9 @@ public class ContractService {
         return executarComResiliencia(() -> {
             File file = drive.files().get(fileId).setFields("name").execute();
 
+            // Descobre o status atual com base na pasta pai do arquivo no Google Drive
+            String statusAtual = descobrirStatusAtualDoArquivo(fileId);
+
             ValueRange response = sheets.spreadsheets().values()
                     .get(fileId, "A1:K100")
                     .execute();
@@ -103,12 +160,11 @@ public class ContractService {
             List<List<Object>> values = response.getValues();
 
             if (values == null || values.isEmpty()) {
-                return new ContractDetailDto(fileId, file.getName(), new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", ""), List.of());
+                return new ContractDetailDto(fileId, file.getName(), statusAtual, new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", ""), List.of());
             }
 
             EventDto eventData = new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", "");
             List<PaymentRecordDto> payments = new ArrayList<>();
-
             boolean lendoPagamentos = false;
 
             List<Object> firstRow = values.get(0);
@@ -145,7 +201,7 @@ public class ContractService {
                 }
             }
 
-            return new ContractDetailDto(fileId, file.getName(), eventData, payments);
+            return new ContractDetailDto(fileId, file.getName(), statusAtual, eventData, payments);
         });
     }
 
@@ -167,12 +223,29 @@ public class ContractService {
         );
     }
 
-    public ContractSummaryDto createContract(ContractDetailDto dto) throws Exception {
-        return executarComResiliencia(() -> {
-            if (dto == null || dto.event() == null) {
-                throw new IllegalArgumentException("Os dados do evento são obrigatórios.");
+    public ContractSummaryDto createContract(ContractDetailDto dto, String status) throws Exception {
+        if (dto == null || dto.event() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Os dados do evento são obrigatórios.");
+        }
+
+        // Validação de Quitado na Criação fora do wrapper de resiliência
+        if ("QUITADO".equalsIgnoreCase(status)) {
+            double valorTotal = dto.event().totalValue() != null ? dto.event().totalValue() : 0.0;
+            double ultimoValorPendente = 0.0;
+            if (dto.payments() != null && !dto.payments().isEmpty()) {
+                PaymentRecordDto ultimoPagamento = dto.payments().get(dto.payments().size() - 1);
+                ultimoValorPendente = ultimoPagamento.pendingAmount() != null ? ultimoPagamento.pendingAmount() : 0.0;
+            } else {
+                ultimoValorPendente = valorTotal;
             }
 
+            if (ultimoValorPendente > 0.0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "O contrato só pode ser definido como QUITADO se o valor pendente for igual ou menor que zero.");
+            }
+        }
+
+        return executarComResiliencia(() -> {
             EventDto event = dto.event();
             String formattedClientName = event.clientName() != null ? event.clientName().trim().toUpperCase() : "";
             String eventDate = event.eventDate() != null ? event.eventDate().trim() : "";
@@ -188,17 +261,20 @@ public class ContractService {
             String newFileId = createdSpreadsheet.getSpreadsheetId();
             Integer sheetId = createdSpreadsheet.getSheets().get(0).getProperties().getSheetId();
 
-            if (folderId != null && !folderId.isBlank()) {
+            String targetFolderId = getFolderIdByStatus(status);
+            if (targetFolderId != null && !targetFolderId.isBlank()) {
                 drive.files().update(newFileId, null)
-                        .setAddParents(folderId)
+                        .setAddParents(targetFolderId)
                         .setSupportsAllDrives(true)
                         .execute();
             }
 
-            String calendarEventId = sincronizarComAgenda(newFileId, event, null);
+            String calendarEventId = null;
+            if (!"CANCELADO".equalsIgnoreCase(status)) {
+                calendarEventId = sincronizarComAgenda(newFileId, event, null);
+            }
 
             List<List<Object>> initialData = new ArrayList<>();
-
             initialData.add(List.of("Cliente", "Data do Evento", "Qtd Convidados", "Início", "Término", "Valor Parcela", "Valor Total", "Bolo", "Opcionais", "Descrição", "Calendar Event ID"));
             initialData.add(List.of(
                     formattedClientName,
@@ -240,14 +316,41 @@ public class ContractService {
         });
     }
 
-    public void updateContract(String fileId, ContractDetailDto dto) throws Exception {
+    public void updateContract(String fileId, ContractDetailDto dto, String status) throws Exception {
+        if (fileId == null || fileId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O fileId da planilha é obrigatório.");
+        }
+        if (dto == null || dto.event() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Os dados do evento são obrigatórios.");
+        }
+
+        // TRAVA 1 e TRAVA 2 executam fora para garantir que o BAD_REQUEST não vire 500 no wrapper
+        String statusAtualNoDrive = descobrirStatusAtualDoArquivo(fileId);
+
+        if ("REALIZADO".equalsIgnoreCase(statusAtualNoDrive) || "CANCELADO".equalsIgnoreCase(statusAtualNoDrive)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Contratos com status " + statusAtualNoDrive + " são finais e não podem mais ser alterados.");
+        }
+
+        if ("QUITADO".equalsIgnoreCase(status)) {
+            double valorPendenteAtual = 0.0;
+
+            if (dto.payments() != null && !dto.payments().isEmpty()) {
+                PaymentRecordDto ultimoPagamento = dto.payments().get(dto.payments().size() - 1);
+                valorPendenteAtual = ultimoPagamento.pendingAmount() != null ? ultimoPagamento.pendingAmount() : 0.0;
+            } else {
+                valorPendenteAtual = dto.event().totalValue() != null ? dto.event().totalValue() : 0.0;
+            }
+
+            if (valorPendenteAtual > 0.0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "O contrato só pode ir para QUITADO se o valor pendente for igual ou menor que zero.");
+            }
+        }
+
         executarComResiliencia(() -> {
-            if (fileId == null || fileId.isBlank()) {
-                throw new IllegalArgumentException("O fileId da planilha é obrigatório.");
-            }
-            if (dto == null || dto.event() == null) {
-                throw new IllegalArgumentException("Os dados do evento são obrigatórios.");
-            }
+            // 1. Move o arquivo de pasta no Google Drive de acordo com o status solicitado
+            moverArquivoParaPasta(fileId, status);
 
             String existingCalendarEventId = null;
             try {
@@ -255,24 +358,39 @@ public class ContractService {
                 if (existingData.getValues() != null && !existingData.getValues().isEmpty()) {
                     List<Object> row = existingData.getValues().get(0);
                     if (!row.isEmpty() && row.get(0) != null) {
-                        existingCalendarEventId = row.get(0).toString().trim();
+                        String val = row.get(0).toString().trim();
+                        if (!val.isBlank() && !val.equalsIgnoreCase("null")) {
+                            existingCalendarEventId = val;
+                        }
                     }
                 }
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                existingCalendarEventId = null;
             }
 
             EventDto event = dto.event();
             String formattedClientName = event.clientName() != null ? event.clientName().trim().toUpperCase() : "";
             String eventDate = event.eventDate() != null ? event.eventDate().trim() : "";
 
-            String calendarEventId = sincronizarComAgenda(fileId, event, existingCalendarEventId);
+            String calendarEventId = null;
+
+            // 2. Regra do Google Calendar baseada no status:
+            if ("CANCELADO".equalsIgnoreCase(status)) {
+                if (existingCalendarEventId != null && !existingCalendarEventId.isBlank()) {
+                    try {
+                        calendar.events().delete("primary", existingCalendarEventId).execute();
+                    } catch (Exception ignored) {}
+                }
+                calendarEventId = "";
+            } else {
+                calendarEventId = sincronizarComAgenda(fileId, event, existingCalendarEventId);
+            }
 
             sheets.spreadsheets().values()
                     .clear(fileId, "A1:K100", new ClearValuesRequest())
                     .execute();
 
             List<List<Object>> updatedData = new ArrayList<>();
-
             updatedData.add(List.of("Cliente", "Data do Evento", "Qtd Convidados", "Início", "Término", "Valor Parcela", "Valor Total", "Bolo", "Opcionais", "Descrição", "Calendar Event ID"));
             updatedData.add(List.of(
                     formattedClientName,
@@ -285,7 +403,7 @@ public class ContractService {
                     event.bolo() != null ? event.bolo() : "",
                     event.opcionais() != null ? event.opcionais() : "",
                     event.descricao() != null ? event.descricao() : "",
-                    calendarEventId != null ? calendarEventId : (existingCalendarEventId != null ? existingCalendarEventId : "")
+                    calendarEventId != null ? calendarEventId : ""
             ));
 
             updatedData.add(List.of("", "", "", "", "", "", "", "", "", "", ""));
@@ -334,7 +452,6 @@ public class ContractService {
 
             if (eventDto.eventDate() != null && !eventDto.eventDate().isBlank()) {
                 String dateStr = eventDto.eventDate().length() >= 10 ? eventDto.eventDate().substring(0, 10) : eventDto.eventDate();
-
                 String startHour = (eventDto.startTime() != null && !eventDto.startTime().isBlank()) ? eventDto.startTime() : "14:00";
                 String endHour = (eventDto.endTime() != null && !eventDto.endTime().isBlank()) ? eventDto.endTime() : "18:00";
 
@@ -347,8 +464,13 @@ public class ContractService {
 
             Event savedEvent;
             if (existingEventId != null && !existingEventId.isBlank()) {
-                savedEvent = calendar.events().update("primary", existingEventId, calendarEvent).execute();
-                return savedEvent.getId();
+                try {
+                    savedEvent = calendar.events().update("primary", existingEventId, calendarEvent).execute();
+                    return savedEvent.getId();
+                } catch (Exception e) {
+                    savedEvent = calendar.events().insert("primary", calendarEvent).execute();
+                    return savedEvent.getId();
+                }
             } else {
                 savedEvent = calendar.events().insert("primary", calendarEvent).execute();
                 return savedEvent.getId();
@@ -369,26 +491,14 @@ public class ContractService {
                 .setColor(new Color().setRed(0.0f).setGreen(0.0f).setBlue(0.0f));
 
         requests.add(new Request().setUpdateBorders(new UpdateBordersRequest()
-                .setRange(new GridRange()
-                        .setSheetId(sheetId)
-                        .setStartRowIndex(0)
-                        .setEndRowIndex(2)
-                        .setStartColumnIndex(0)
-                        .setEndColumnIndex(11)
-                )
+                .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(0).setEndRowIndex(2).setStartColumnIndex(0).setEndColumnIndex(11))
                 .setTop(borderStyle).setBottom(borderStyle).setLeft(borderStyle).setRight(borderStyle)
                 .setInnerHorizontal(borderStyle).setInnerVertical(borderStyle)
         ));
 
         if (totalLinhas >= 4) {
             requests.add(new Request().setUpdateBorders(new UpdateBordersRequest()
-                    .setRange(new GridRange()
-                            .setSheetId(sheetId)
-                            .setStartRowIndex(3)
-                            .setEndRowIndex(totalLinhas)
-                            .setStartColumnIndex(0)
-                            .setEndColumnIndex(3)
-                    )
+                    .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(3).setEndRowIndex(totalLinhas).setStartColumnIndex(0).setEndColumnIndex(3))
                     .setTop(borderStyle).setBottom(borderStyle).setLeft(borderStyle).setRight(borderStyle)
                     .setInnerHorizontal(borderStyle).setInnerVertical(borderStyle)
             ));
@@ -398,11 +508,6 @@ public class ContractService {
 
         requests.add(new Request().setRepeatCell(new RepeatCellRequest()
                 .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(0).setEndRowIndex(1).setStartColumnIndex(0).setEndColumnIndex(11))
-                .setCell(new CellData().setUserEnteredFormat(headerFormat))
-                .setFields("userEnteredFormat.textFormat.bold")));
-
-        requests.add(new Request().setRepeatCell(new RepeatCellRequest()
-                .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(3).setEndRowIndex(4).setStartColumnIndex(0).setEndColumnIndex(3))
                 .setCell(new CellData().setUserEnteredFormat(headerFormat))
                 .setFields("userEnteredFormat.textFormat.bold")));
 
@@ -429,22 +534,26 @@ public class ContractService {
     public List<ContractSummaryDto> searchByTitle(String title) throws Exception {
         return executarComResiliencia(() -> {
             String sanitizedTitle = title != null ? title.replace("'", "\\'") : "";
-
-            String query = String.format(
-                    "'%s' in parents and name contains '%s' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
-                    folderId, sanitizedTitle
-            );
-
-            FileList result = drive.files().list()
-                    .setQ(query)
-                    .setSpaces("drive")
-                    .setFields("files(id, name)")
-                    .execute();
-
+            List<String> folders = List.of(folderAbertoId, folderQuitadoId, folderCanceladoId, folderRealizadoId);
             List<ContractSummaryDto> summaries = new ArrayList<>();
-            if (result.getFiles() != null) {
-                for (File file : result.getFiles()) {
-                    summaries.add(new ContractSummaryDto(file.getId(), file.getName()));
+
+            for (String fId : folders) {
+                if (fId == null || fId.isBlank()) continue;
+                String query = String.format(
+                        "'%s' in parents and name contains '%s' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
+                        fId, sanitizedTitle
+                );
+
+                FileList result = drive.files().list()
+                        .setQ(query)
+                        .setSpaces("drive")
+                        .setFields("files(id, name)")
+                        .execute();
+
+                if (result.getFiles() != null) {
+                    for (File file : result.getFiles()) {
+                        summaries.add(new ContractSummaryDto(file.getId(), file.getName()));
+                    }
                 }
             }
             return summaries;

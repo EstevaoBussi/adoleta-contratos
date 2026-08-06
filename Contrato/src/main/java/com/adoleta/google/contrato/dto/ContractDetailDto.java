@@ -5,6 +5,7 @@ import java.util.List;
 public record ContractDetailDto(
         String fileId,
         String fileName,
+        String status,
         EventDto event,
         List<PaymentRecordDto> payments
 ) {}
