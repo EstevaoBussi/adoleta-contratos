@@ -198,9 +198,14 @@
 
       <!-- RODAPÉ E BOTÕES DE SALVAR -->
       <div class="d-grid gap-2 d-md-flex justify-content-md-end no-print mt-4">
-        <button type="submit" mat-flat-button class="px-4 py-2 fw-bold text-white" style="background-color: #d97706 !important;">
+        <button 
+          type="submit" 
+          mat-flat-button 
+          class="px-4 py-2 fw-bold text-white" 
+          style="background-color: #d97706 !important;"
+          [disabled]="isSubmitting">
           <mat-icon>{{ currentFileId ? 'update' : 'cloud_upload' }}</mat-icon>
-          {{ currentFileId ? 'Atualizar Contrato' : 'Salvar Contrato' }}
+          {{ isSubmitting ? 'Salvando...' : (currentFileId ? 'Atualizar Contrato' : 'Salvar Contrato') }}
         </button>
       </div>
     </form>

@@ -6,5 +6,5 @@ export const routes: Routes = [
   { path: '', redirectTo: 'list', pathMatch: 'full' },
   { path: 'list', component: ContractListComponent },
   { path: 'new', component: ContractFormComponent },
-  // Adicione outras rotas conforme necessário
+  { path: 'edit/:id', component: ContractFormComponent },
 ];

@@ -64,7 +64,9 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "allowedHosts": [
-              "raid-bottle-dim-declare.trycloudflare.com"
+              ".trycloudflare.com",
+              "localhost",
+              ".localhost"
             ]
           },
           "configurations": {

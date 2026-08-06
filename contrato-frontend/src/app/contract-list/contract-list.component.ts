@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ContractService } from '../services/contract.spec';
+import { ContractService } from '../services/contract.service';
 import { ContractSummaryDto, ContractDetailDto } from '../models/contract.model';
 
 // Importações do Angular Material

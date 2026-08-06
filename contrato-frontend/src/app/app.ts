@@ -1,77 +1,51 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ContractFormComponent } from './contract-form/contract-form.component';
-import { ContractListComponent } from './contract-list/contract-list.component';
-import { ContractDetailDto } from './models/contract.model';
+import { RouterOutlet, RouterLink } from '@angular/router';
 
 // Importações do Angular Material para a interface e menu lateral
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
-import { MatSidenavModule } from '@angular/material/sidenav'; // <-- Adicionado para o menu lateral
-import { MatListModule } from '@angular/material/list';         // <-- Adicionado para os itens da lista do menu
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
-    ContractFormComponent,
-    ContractListComponent,
+    RouterOutlet,
+    RouterLink,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatTabsModule,
     MatCardModule,
-    MatSidenavModule, // <-- Registrado aqui
-    MatListModule     // <-- Registrado aqui
+    MatSidenavModule,
+    MatListModule
   ],
-  templateUrl: './app.html'
+  template: `
+    <mat-sidenav-container class="sidenav-container" style="height: 100vh;">
+      <!-- Menu Lateral -->
+      <mat-sidenav mode="side" opened style="width: 250px;">
+        <mat-toolbar color="primary">Adolêta Contratos</mat-toolbar>
+        <mat-nav-list>
+          <a mat-list-item routerLink="/list">
+            <mat-icon matListItemIcon>list</mat-icon>
+            <span>Lista de Contratos</span>
+          </a>
+          <a mat-list-item routerLink="/new">
+            <mat-icon matListItemIcon>add</mat-icon>
+            <span>Novo Contrato</span>
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
+
+      <!-- Conteúdo Principal Dinâmico via Rotas -->
+      <mat-sidenav-content style="padding: 20px;">
+        <router-outlet></router-outlet>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+  `
 })
-export class AppComponent {
-  @ViewChild(ContractFormComponent) formComponent!: ContractFormComponent;
-
-  // Declaração da propriedade que controla a aba ativa
-  activeTab: 'home' | 'list' | 'form' = 'home';
-
-  openNewContract(): void {
-    this.activeTab = 'form';
-    if (this.formComponent) {
-      this.formComponent.currentFileId = null;
-      this.formComponent.message = '';
-      this.formComponent.contractForm.reset({
-        event: { installmentValue: 0, totalValue: 0 }
-      });
-      this.formComponent.payments.clear();
-    }
-  }
-
-  onContractSelected(contractDetail: ContractDetailDto): void {
-    this.activeTab = 'form';
-    if (this.formComponent) {
-      this.formComponent.currentFileId = contractDetail.fileId || null;
-      this.formComponent.message = '';
-      
-      this.formComponent.contractForm.patchValue({
-        fileId: contractDetail.fileId,
-        fileName: contractDetail.fileName,
-        event: contractDetail.event
-      });
-
-      this.formComponent.payments.clear();
-      if (contractDetail.payments) {
-        contractDetail.payments.forEach(p => {
-          this.formComponent.payments.push(
-            this.formComponent['fb'].group({
-              paymentDate: [p.paymentDate],
-              amount: [p.amount],
-              pendingAmount: [p.pendingAmount]
-            })
-          );
-        });
-      }
-    }
-  }
-}
+export class AppComponent {}

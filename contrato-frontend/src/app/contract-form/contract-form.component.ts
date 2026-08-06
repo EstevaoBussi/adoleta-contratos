@@ -1,7 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { ContractService } from '../services/contract.spec';
+import { Router, ActivatedRoute } from '@angular/router';
+import { finalize } from 'rxjs/operators';
+import { ContractService } from '../services/contract.service';
 import { ContractDetailDto } from '../models/contract.model';
 
 // Importações do Angular Material
@@ -28,13 +30,24 @@ import { MatInputModule } from '@angular/material/input';
 export class ContractFormComponent implements OnInit {
   public fb = inject(FormBuilder);
   private contractService = inject(ContractService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private location = inject(Location);
+  private cdr = inject(ChangeDetectorRef);
 
   contractForm!: FormGroup;
   currentFileId: string | null = null;
   message: string = '';
+  isSubmitting: boolean = false;
 
   ngOnInit(): void {
     this.initForm();
+
+    const idFromRoute = this.route.snapshot.paramMap.get('id');
+    if (idFromRoute) {
+      this.currentFileId = idFromRoute;
+      this.loadContractData(idFromRoute);
+    }
   }
 
   private initForm(): void {
@@ -59,7 +72,23 @@ export class ContractFormComponent implements OnInit {
     this.contractForm.get('event.totalValue')?.valueChanges.subscribe(() => this.recalculateBalances());
   }
 
-  // Função para preenchimento rápido dos horários
+  loadContractData(fileId: string): void {
+    this.contractService.getById(fileId).subscribe({
+      next: (data) => {
+        this.contractForm.patchValue({
+          fileId: data.fileId,
+          fileName: data.fileName,
+          event: data.event
+        });
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.message = 'Erro ao carregar os dados do contrato: ' + err.message;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   setShift(start: string, end: string): void {
     this.contractForm.get('event')?.patchValue({
       startTime: start,
@@ -109,28 +138,67 @@ export class ContractFormComponent implements OnInit {
   saveContract(): void {
     if (this.contractForm.invalid) {
       this.message = 'Por favor, preencha todos os campos obrigatórios corretamente.';
+      this.cdr.detectChanges();
       return;
     }
+
+    this.isSubmitting = true;
+    this.message = 'Salvando contrato...';
+    this.cdr.detectChanges();
 
     const payload: ContractDetailDto = this.contractForm.getRawValue();
     const fileIdToUse = this.currentFileId || this.contractForm.get('fileId')?.value;
 
     if (fileIdToUse) {
-      this.contractService.update(fileIdToUse, payload).subscribe({
+      // Modo Atualização
+      this.contractService.update(fileIdToUse, payload).pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
         next: () => {
           this.currentFileId = fileIdToUse;
           this.message = 'Contrato atualizado com sucesso no Google Sheets!';
+          this.cdr.detectChanges();
         },
-        error: (err) => this.message = 'Erro ao atualizar contrato: ' + err.message
+        error: (err) => {
+          this.message = 'Erro ao atualizar contrato: ' + err.message;
+          this.cdr.detectChanges();
+        }
       });
     } else {
-      this.contractService.create(payload).subscribe({
-        next: (res) => {
-          this.currentFileId = res.id;
-          this.contractForm.patchValue({ id: res.id });
-          this.message = `Contrato criado com sucesso! ID: ${res.id}`;
+      // Modo Criação
+      this.contractService.create(payload).pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: (res: any) => {
+          console.log('Resposta completa do create:', res);
+          
+          const newId = res?.id;
+          const newName = res?.name;
+          
+          if (newId) {
+            this.currentFileId = newId;
+            this.contractForm.patchValue({ 
+              fileId: newId, 
+              fileName: newName || '' 
+            });
+            this.message = 'Contrato criado com sucesso! Alternado para modo de edição.';
+            this.location.go(`/edit/${newId}`);
+          } else {
+            this.message = 'Contrato criado com sucesso!';
+          }
+          this.cdr.detectChanges();
         },
-        error: (err) => this.message = 'Erro ao criar contrato: ' + err.message
+        error: (err) => {
+          console.error(err);
+          this.message = 'Erro ao criar contrato: ' + (err.error?.message || err.message);
+          this.cdr.detectChanges();
+        }
       });
     }
   }

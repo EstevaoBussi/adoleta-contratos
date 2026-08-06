@@ -28,9 +28,9 @@ public class GoogleConfig {
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
     @Bean
-    public com.google.api.services.calendar.Calendar calendar(com.google.api.client.auth.oauth2.Credential credential) throws Exception {
-        com.google.api.client.http.javanet.NetHttpTransport httpTransport = com.google.api.client.googleapis.javanet.GoogleNetHttpTransport.newTrustedTransport();
-        com.google.api.client.json.gson.GsonFactory jsonFactory = com.google.api.client.json.gson.GsonFactory.getDefaultInstance();
+    public com.google.api.services.calendar.Calendar calendar(Credential credential) throws Exception {
+        NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
 
         return new com.google.api.services.calendar.Calendar.Builder(httpTransport, jsonFactory, credential)
                 .setApplicationName("Adolêta Contratos")
@@ -54,18 +54,33 @@ public class GoogleConfig {
                 CalendarScopes.CALENDAR
         );
 
+        NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+
+        // Garante que o diretório de tokens exista de forma absoluta
+        java.io.File tokenDir = new java.io.File(TOKENS_DIRECTORY_PATH);
+        if (!tokenDir.exists()) {
+            tokenDir.mkdirs();
+        }
+
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance(),
+                httpTransport,
+                jsonFactory,
                 clientSecrets,
                 scopes
         )
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+                .setDataStoreFactory(new FileDataStoreFactory(tokenDir))
                 .setAccessType("offline")
                 .build();
 
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+
+        try {
+            return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        } catch (Exception e) {
+            System.err.println("Aviso: Falha ao carregar credenciais salvas. Tentando reautorizar...");
+            return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        }
     }
 
     @Bean
