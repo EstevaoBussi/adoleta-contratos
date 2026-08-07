@@ -30,7 +30,9 @@
       }
     }
 
-    &.active-menu-item {
+    /* Suporta tanto a classe customizada quanto a padrão do Angular Router */
+    &.active-menu-item, 
+    &.router-link-active {
       background-color: #d97706 !important; /* Laranja de destaque */
       color: #ffffff !important;
       border-left: 4px solid #ffffff !important;

@@ -20,7 +20,7 @@
     <div class="py-2">
       
       <!-- Dashboard -->
-      <a (click)="activeTab = 'home'" [class.active-menu-item]="activeTab === 'home'" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+      <a routerLink="/" routerLinkActive="active-menu-item" [routerLinkActiveOptions]="{ exact: true }" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
         <mat-icon class="me-3 text-secondary">dashboard</mat-icon>
         <span class="fw-semibold">Dashboard</span>
       </a>
@@ -28,12 +28,12 @@
       <!-- Seção Contratos -->
       <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contratos</div>
       
-      <a (click)="activeTab = 'list'" [class.active-menu-item]="activeTab === 'list'" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+      <a routerLink="/list" routerLinkActive="active-menu-item" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
         <mat-icon class="me-3 text-secondary">list_alt</mat-icon>
         <span class="fw-medium">Lista Completa</span>
       </a>
 
-      <a (click)="openNewContract()" [class.active-menu-item]="activeTab === 'form'" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+      <a routerLink="/new" routerLinkActive="active-menu-item" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
         <mat-icon class="me-3 text-secondary">note_add</mat-icon>
         <span class="fw-medium">Novo Contrato</span>
       </a>
@@ -76,60 +76,9 @@
       </div>
     </mat-toolbar>
 
-    <!-- ÁREA DINÂMICA DAS TELAS -->
+    <!-- ÁREA DINÂMICA DAS TELAS (Via Rotas do Angular) -->
     <div class="container-fluid p-4 flex-grow-1">
-      
-      <!-- ABA HOME / DASHBOARD -->
-      <div *ngIf="activeTab === 'home'">
-        
-        <!-- Cards de Estatísticas (KPIs) -->
-        <div class="row g-3 mb-4">
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-3 rounded-3 bg-white">
-              <div class="text-muted small fw-bold">CONTRATOS ATIVOS</div>
-              <div class="fs-3 fw-bold text-dark mt-1">345</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-3 rounded-3 bg-white">
-              <div class="text-muted small fw-bold">NOVOS HOJE</div>
-              <div class="fs-3 fw-bold text-dark mt-1">12</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card border-0 shadow-sm p-3 rounded-3 bg-white">
-              <div class="text-muted small fw-bold">AGENDA DA SEMANA</div>
-              <div class="fs-3 fw-bold text-dark mt-1">27 eventos</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Painel de Ações Rápidas -->
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 p-4 rounded-3">
-              <h4 class="fw-bold">Cadastrar Novo Contrato</h4>
-              <p class="text-muted">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
-              <button mat-flat-button color="primary" class="mt-auto align-self-start" (click)="openNewContract()">Iniciar Cadastro</button>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 p-4 rounded-3">
-              <h4 class="fw-bold">Buscar & Editar Planilhas</h4>
-              <p class="text-muted">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
-              <button mat-flat-button color="accent" class="mt-auto align-self-start text-white" (click)="activeTab = 'list'">Ver Lista Completa</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ABA LISTA -->
-      <app-contract-list *ngIf="activeTab === 'list'" (onSelectContract)="onContractSelected($event)"></app-contract-list>
-
-      <!-- ABA FORMULÁRIO -->
-      <app-contract-form *ngIf="activeTab === 'form'"></app-contract-form>
-
+      <router-outlet></router-outlet>
     </div>
 
   </mat-sidenav-content>

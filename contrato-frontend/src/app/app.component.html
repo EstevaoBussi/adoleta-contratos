@@ -1,90 +1,84 @@
 <mat-sidenav-container class="sidenav-container" style="height: 100vh;">
   
-  <!-- MENU LATERAL (SIDENAV) -->
-  <mat-sidenav #drawer mode="side" opened class="sidenav shadow-sm border-end" style="width: 260px;">
-    <div class="p-3 text-center border-bottom bg-light">
-      <h5 class="fw-bold text-primary mb-0">🎈 Adolêta Kids</h5>
-      <small class="text-muted">Painel de Gestão</small>
+  <!-- MENU LATERAL ESCURO -->
+  <mat-sidenav #drawer mode="side" opened class="dark-sidenav shadow" style="width: 260px;">
+    
+    <!-- Perfil do Usuário / Logotipo no Topo do Menu -->
+    <div class="p-3 border-bottom border-secondary d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <!-- Logotipo da Adolêta Kids -->
+        <img src="/images/logo.jpeg" alt="Adolêta Kids" style="width: 38px; height: 38px; object-fit: contain;" class="me-2 rounded-circle bg-white p-1">
+        <div>
+          <h6 class="mb-0 text-white fw-bold" style="font-size: 0.9rem;">Adolêta Kids</h6>
+          <small class="text-white-50" style="font-size: 0.75rem;">Sistema de Gestão</small>
+        </div>
+      </div>
+      <mat-icon class="text-white-50 fs-5">unfold_more</mat-icon>
     </div>
 
-    <mat-nav-list class="p-2">
-      <!-- Botão Home -->
-      <a mat-list-item (click)="activeTab = 'home'" [class.bg-light]="activeTab === 'home'" class="rounded mb-1 cursor-pointer">
-        <mat-icon matListItemIcon class="text-primary">home</mat-icon>
-        <span matListItemTitle class="fw-semibold">Início</span>
+    <!-- Navegação personalizada em bloco reto -->
+    <div class="py-2">
+      
+      <!-- Dashboard -->
+      <a routerLink="/" routerLinkActive="active-menu-item" [routerLinkActiveOptions]="{ exact: true }" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+        <mat-icon class="me-3 text-secondary">dashboard</mat-icon>
+        <span class="fw-semibold">Dashboard</span>
       </a>
 
-      <!-- Botão Listar Contratos -->
-      <a mat-list-item (click)="activeTab = 'list'" [class.bg-light]="activeTab === 'list'" class="rounded mb-1 cursor-pointer">
-        <mat-icon matListItemIcon class="text-info">folder_shared</mat-icon>
-        <span matListItemTitle class="fw-semibold">Contratos Salvos</span>
+      <!-- Seção Contratos -->
+      <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contratos</div>
+      
+      <a routerLink="/list" routerLinkActive="active-menu-item" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+        <mat-icon class="me-3 text-secondary">list_alt</mat-icon>
+        <span class="fw-medium">Lista Completa</span>
       </a>
 
-      <!-- Botão Novo Contrato -->
-      <a mat-list-item (click)="openNewContract()" [class.bg-light]="activeTab === 'form'" class="rounded mb-1 cursor-pointer">
-        <mat-icon matListItemIcon class="text-success">add_circle</mat-icon>
-        <span matListItemTitle class="fw-semibold">Novo Contrato</span>
+      <a routerLink="/new" routerLinkActive="active-menu-item" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+        <mat-icon class="me-3 text-secondary">note_add</mat-icon>
+        <span class="fw-medium">Novo Contrato</span>
       </a>
-    </mat-nav-list>
+
+      <!-- Seção Gestão -->
+      <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Gestão</div>
+      
+      <a class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary">
+        <mat-icon class="me-3">payments</mat-icon>
+        <span>Financeiro</span>
+      </a>
+
+      <a class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary">
+        <mat-icon class="me-3">bar_chart</mat-icon>
+        <span>Relatórios</span>
+      </a>
+
+    </div>
   </mat-sidenav>
 
   <!-- CONTEÚDO PRINCIPAL -->
   <mat-sidenav-content class="main-content bg-light d-flex flex-column">
     
-    <!-- TOOLBAR SUPERIOR -->
-    <mat-toolbar color="primary" class="shadow-sm px-4">
-      <button type="button" mat-icon-button (click)="drawer.toggle()" class="me-2">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="fw-bold">Gestão de Contratos e Pagamentos</span>
-      
-      <span class="flex-grow-1"></span>
-      <span class="badge bg-white text-primary font-monospace px-3 py-2 shadow-sm" style="font-size: 0.85rem;">
-        Buffet Adolêta Kids
-      </span>
-    </mat-toolbar>
-
-    <!-- ÁREA DE CONTEÚDO DINÂMICO -->
-    <div class="container-fluid p-4 flex-grow-1">
-      
-      <!-- ABA HOME (Painel Inicial) -->
-      <div *ngIf="activeTab === 'home'">
-        <div class="card shadow-sm border-0 mb-4 p-4" style="border-radius: 12px;">
-          <h2 class="fw-bold text-dark">Painel de Controle</h2>
-          <p class="text-muted mb-0">Crie novos orçamentos ou edite registros de pagamentos diretamente sincronizados com as planilhas no Google Drive.</p>
-        </div>
-
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 p-4" style="border-radius: 12px;">
-              <div class="text-success mb-3">
-                <i class="bi bi-file-earmark-plus fs-1"></i>
-              </div>
-              <h4 class="fw-bold">Cadastrar Novo Contrato</h4>
-              <p class="text-muted">Lance os dados do cliente, data da festa e configure o parcelamento inicial.</p>
-              <button mat-flat-button color="primary" class="mt-auto align-self-start" (click)="openNewContract()">Iniciar Cadastro</button>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 p-4" style="border-radius: 12px;">
-              <div class="text-primary mb-3">
-                <i class="bi bi-search fs-1"></i>
-              </div>
-              <h4 class="fw-bold">Buscar & Editar Planilhas</h4>
-              <p class="text-muted">Consulte os contratos existentes no Drive para baixar, visualizar ou incluir baixas de parcelas.</p>
-              <button mat-flat-button color="accent" class="mt-auto align-self-start text-white" (click)="activeTab = 'list'">Ver Lista Completa</button>
-            </div>
-          </div>
-        </div>
+    <!-- TOOLBAR SUPERIOR ESTILO ANGULAR -->
+    <mat-toolbar class="bg-dark text-white shadow-sm px-4 justify-content-between" style="background-color: #2b303b !important;">
+      <div class="d-flex align-items-center">
+        <button type="button" mat-icon-button (click)="drawer.toggle()" class="me-2 text-white">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="fw-bold" style="font-size: 1rem;">Adolêta Kids - Sistema de Gestão de Contratos</span>
       </div>
 
-      <!-- ABA LISTA -->
-      <app-contract-list *ngIf="activeTab === 'list'" (onSelectContract)="onContractSelected($event)"></app-contract-list>
+      <div class="d-flex align-items-center">
+        <button mat-icon-button class="text-white me-2">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-icon-button class="text-white">
+          <mat-icon>account_circle</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
 
-      <!-- ABA FORMULÁRIO -->
-      <app-contract-form *ngIf="activeTab === 'form'"></app-contract-form>
-
+    <!-- ÁREA DINÂMICA DAS TELAS (Via Rotas do Angular) -->
+    <div class="container-fluid p-4 flex-grow-1">
+      <router-outlet></router-outlet>
     </div>
 
   </mat-sidenav-content>

@@ -20,6 +20,7 @@ export interface PaymentRecordDto {
 export interface ContractDetailDto {
   fileId?: string;
   fileName?: string;
+  status: string; 
   event: EventDto;
   payments: PaymentRecordDto[];
 }

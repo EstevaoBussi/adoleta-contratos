@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, output, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, output } from '@angular/core'; 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router'; // <-- 1. Importar o Router
 import { ContractService } from '../services/contract.service';
 import { ContractSummaryDto, ContractDetailDto } from '../models/contract.model';
 
@@ -32,21 +33,21 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export class ContractListComponent implements OnInit {
   private contractService = inject(ContractService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router); // <-- 2. Injetar o Router aqui
 
-  // Evento para avisar o componente pai quando um contrato for selecionado para edição
+  // Evento de saída para notificar o componente pai (caso ainda precise)
   onSelectContract = output<ContractDetailDto>();
 
-  contracts: ContractSummaryDto[] = [];
-  filteredContracts: ContractSummaryDto[] = [];
+  contracts: any[] = [];
+  filteredContracts: any[] = [];
   searchTerm: string = '';
   loading: boolean = false;
   errorMessage: string = '';
 
-  // Colunas exibidas na mat-table
-  displayedColumns: string[] = ['name', 'id', 'actions'];
+  displayedColumns: string[] = ['name', 'id', 'status', 'actions'];
 
   ngOnInit(): void {
-    this.loadContracts(); // Carrega os contratos ao iniciar a tela
+    this.loadContracts();
   }
 
   loadContracts(): void {
@@ -56,7 +57,8 @@ export class ContractListComponent implements OnInit {
       next: (data: any[]) => {
         this.contracts = data.map(item => ({
           id: item.id,
-          name: item.name
+          name: item.name,
+          status: (item.status || 'ABERTO').toUpperCase()
         }));
         this.filteredContracts = this.contracts;
         this.loading = false;
@@ -73,13 +75,11 @@ export class ContractListComponent implements OnInit {
   onSearchChange(): void {
     const term = this.searchTerm ? this.searchTerm.trim() : '';
 
-    // Se o campo de busca estiver totalmente vazio, recarrega todos os contratos
     if (term.length === 0) {
       this.loadContracts();
       return;
     }
 
-    // Se digitou algo mas tem menos de 3 caracteres, não dispara requisição para evitar erro 500
     if (term.length > 0 && term.length < 3) {
       this.loading = false;
       return; 
@@ -92,7 +92,8 @@ export class ContractListComponent implements OnInit {
       next: (data: any[]) => {
         this.filteredContracts = data.map(item => ({
           id: item.id,
-          name: item.name
+          name: item.name,
+          status: (item.status || 'ABERTO').toUpperCase()
         }));
         this.loading = false;
         this.cdr.detectChanges();
@@ -107,17 +108,12 @@ export class ContractListComponent implements OnInit {
   }
 
   editContract(id: string): void {
-    this.loading = true;
-    this.contractService.getById(id).subscribe({
-      next: (detail) => {
-        detail.fileId = id;
-        this.onSelectContract.emit(detail);
-        this.loading = false;
-      },
-      error: (err) => {
-        alert('Erro ao buscar detalhes do contrato: ' + err.message);
-        this.loading = false;
-      }
-    });
+    if (!id) {
+      console.error('ID do contrato inválido.');
+      return;
+    }
+    
+    // Agora o router está injetado e vai direcionar corretamente para /edit/ID_DO_CONTRATO
+    this.router.navigate(['/edit', id]);
   }
 }
