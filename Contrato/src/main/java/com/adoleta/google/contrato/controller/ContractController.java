@@ -4,17 +4,21 @@ import com.adoleta.google.contrato.dto.ContractDetailDto;
 import com.adoleta.google.contrato.dto.ContractSummaryDto;
 import com.adoleta.google.contrato.service.ContractService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.Serializable;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/contracts")
 @CrossOrigin(origins = "*") // Permite chamadas do frontend Angular
-public class ContractController {
+public class ContractController implements Serializable {
+    private static final Logger logger = LoggerFactory.getLogger(ContractController.class);
 
     private final ContractService contractService;
 
@@ -32,6 +36,7 @@ public class ContractController {
             List<ContractSummaryDto> contracts = contractService.listContracts();
             return ResponseEntity.ok(contracts);
         } catch (Exception e) {
+            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -46,6 +51,7 @@ public class ContractController {
             ContractDetailDto contractDetail = contractService.getContractDetail(fileId);
             return ResponseEntity.ok(contractDetail);
         } catch (Exception e) {
+            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -66,7 +72,7 @@ public class ContractController {
             // Propaga o status exato lançado pelo serviço (ex: 400 Bad Request)
             return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -89,7 +95,7 @@ public class ContractController {
             // devolvemos exatamente o status HTTP que ela carrega (400) em vez de fixar 500!
             return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -104,6 +110,7 @@ public class ContractController {
             List<ContractSummaryDto> results = contractService.searchByTitle(title);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
+            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

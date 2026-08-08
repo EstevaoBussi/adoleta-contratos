@@ -26,6 +26,7 @@ import java.util.List;
 public class GoogleConfig {
 
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final String USER_ID = "user"; // Identificador padrão para o armazenamento do token
 
     @Bean
     public com.google.api.services.calendar.Calendar calendar(Credential credential) throws Exception {
@@ -63,24 +64,35 @@ public class GoogleConfig {
             tokenDir.mkdirs();
         }
 
+        // Configura o DataStoreFactory para salvar os tokens gerados em disco
+        FileDataStoreFactory dataStoreFactory = new FileDataStoreFactory(tokenDir);
+
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport,
                 jsonFactory,
                 clientSecrets,
                 scopes
         )
-                .setDataStoreFactory(new FileDataStoreFactory(tokenDir))
+                .setDataStoreFactory(dataStoreFactory)
                 .setAccessType("offline")
+                .setApprovalPrompt("auto") // Evita forçar nova aprovação se o refresh token já existir
                 .build();
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+        // 1. Tenta carregar uma credencial que já foi salva anteriormente no disco
+        Credential credential = flow.loadCredential(USER_ID);
 
-        try {
-            return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-        } catch (Exception e) {
-            System.err.println("Aviso: Falha ao carregar credenciais salvas. Tentando reautorizar...");
-            return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+        // 2. Se não existir credencial salva, aí sim abre o navegador para o primeiro login
+        if (credential == null || (credential.getRefreshToken() == null && credential.getAccessToken() == null)) {
+            System.out.println("Nenhum token encontrado ou token inválido. Iniciando autorização via browser...");
+            LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+            credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize(USER_ID);
+        } else {
+            // Se o token existe mas expirou, a biblioteca do Google vai tentar usar o refresh_token automaticamente
+            // quando uma chamada de API for feita, ou podemos garantir a atualização preventiva se necessário.
+            System.out.println("Credenciais carregadas com sucesso a partir do armazenamento local.");
         }
+
+        return credential;
     }
 
     @Bean

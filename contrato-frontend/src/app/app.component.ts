@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -7,7 +7,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavModule, MatSidenav } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 
 @Component({
@@ -28,5 +28,27 @@ import { MatListModule } from '@angular/material/list';
   templateUrl: './app.html'
 })
 export class AppComponent {
-  // A navegação agora é controlada pelas rotas reais do Angular (/ , /list, /new)
+  @ViewChild('drawer') drawer!: MatSidenav;
+  
+  // Define o modo inicial baseado no tamanho da tela (celular começa fechado/over)
+  sidenavMode: 'side' | 'over' = window.innerWidth < 992 ? 'over' : 'side';
+  sidenavOpened: boolean = window.innerWidth >= 992;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    if (window.innerWidth < 992) {
+      this.sidenavMode = 'over';
+      this.sidenavOpened = false;
+    } else {
+      this.sidenavMode = 'side';
+      this.sidenavOpened = true;
+    }
+  }
+
+  // Fecha o menu automaticamente se estivermos em modo 'over' (celular/tablet)
+  onMenuItemClick(): void {
+    if (this.sidenavMode === 'over') {
+      this.drawer.close();
+    }
+  }
 }

@@ -93,8 +93,7 @@ public class ContractService {
         }
     }
 
-    private String descobrirStatusAtualDoArquivo(String fileId) throws Exception {
-        File file = drive.files().get(fileId).setFields("parents").execute();
+    private String descobrirStatusAtualDoArquivo(File file) {
         if (file.getParents() != null) {
             for (String parentId : file.getParents()) {
                 if (parentId.equals(folderQuitadoId)) return "QUITADO";
@@ -104,6 +103,11 @@ public class ContractService {
             }
         }
         return "ABERTO";
+    }
+
+    private String descobrirStatusAtualDoArquivo(String fileId) throws Exception {
+        File file = drive.files().get(fileId).setFields("parents").execute();
+        return descobrirStatusAtualDoArquivo(file);
     }
 
     private void moverArquivoParaPasta(String fileId, String novoStatus) throws Exception {
@@ -134,24 +138,25 @@ public class ContractService {
             for (String fId : folders) {
                 if (fId == null || fId.isBlank()) continue;
                 String query = String.format("'%s' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false", fId);
-                FileList result = drive.files().list().setQ(query).setFields("files(id, name)").execute();
+                // Solicitamos também os 'parents' para identificar o status na listagem sem precisar de outra chamada
+                FileList result = drive.files().list().setQ(query).setFields("files(id, name, parents)").execute();
                 if (result.getFiles() != null) {
                     allFiles.addAll(result.getFiles());
                 }
             }
 
             return allFiles.stream()
-                    .map(f -> new ContractSummaryDto(f.getId(), f.getName()))
+                    .map(f -> new ContractSummaryDto(f.getId(), f.getName(), descobrirStatusAtualDoArquivo(f)))
                     .toList();
         });
     }
 
     public ContractDetailDto getContractDetail(String fileId) throws Exception {
         return executarComResiliencia(() -> {
-            File file = drive.files().get(fileId).setFields("name").execute();
+            File file = drive.files().get(fileId).setFields("name, parents").execute();
 
             // Descobre o status atual com base na pasta pai do arquivo no Google Drive
-            String statusAtual = descobrirStatusAtualDoArquivo(fileId);
+            String statusAtual = descobrirStatusAtualDoArquivo(file);
 
             ValueRange response = sheets.spreadsheets().values()
                     .get(fileId, "A1:K100")
@@ -228,7 +233,6 @@ public class ContractService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Os dados do evento são obrigatórios.");
         }
 
-        // Validação de Quitado na Criação fora do wrapper de resiliência
         if ("QUITADO".equalsIgnoreCase(status)) {
             double valorTotal = dto.event().totalValue() != null ? dto.event().totalValue() : 0.0;
             double ultimoValorPendente = 0.0;
@@ -312,7 +316,7 @@ public class ContractService {
 
             aplicarEstilosEBordas(newFileId, sheetId, initialData.size());
 
-            return new ContractSummaryDto(newFileId, fileName);
+            return new ContractSummaryDto(newFileId, fileName, status != null ? status.toUpperCase() : "ABERTO");
         });
     }
 
@@ -324,7 +328,6 @@ public class ContractService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Os dados do evento são obrigatórios.");
         }
 
-        // TRAVA 1 e TRAVA 2 executam fora para garantir que o BAD_REQUEST não vire 500 no wrapper
         String statusAtualNoDrive = descobrirStatusAtualDoArquivo(fileId);
 
         if ("REALIZADO".equalsIgnoreCase(statusAtualNoDrive) || "CANCELADO".equalsIgnoreCase(statusAtualNoDrive)) {
@@ -349,7 +352,6 @@ public class ContractService {
         }
 
         executarComResiliencia(() -> {
-            // 1. Move o arquivo de pasta no Google Drive de acordo com o status solicitado
             moverArquivoParaPasta(fileId, status);
 
             String existingCalendarEventId = null;
@@ -374,7 +376,6 @@ public class ContractService {
 
             String calendarEventId = null;
 
-            // 2. Regra do Google Calendar baseada no status:
             if ("CANCELADO".equalsIgnoreCase(status)) {
                 if (existingCalendarEventId != null && !existingCalendarEventId.isBlank()) {
                     try {
@@ -547,12 +548,12 @@ public class ContractService {
                 FileList result = drive.files().list()
                         .setQ(query)
                         .setSpaces("drive")
-                        .setFields("files(id, name)")
+                        .setFields("files(id, name, parents)")
                         .execute();
 
                 if (result.getFiles() != null) {
                     for (File file : result.getFiles()) {
-                        summaries.add(new ContractSummaryDto(file.getId(), file.getName()));
+                        summaries.add(new ContractSummaryDto(file.getId(), file.getName(), descobrirStatusAtualDoArquivo(file)));
                     }
                 }
             }

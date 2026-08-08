@@ -1,3 +1,23 @@
+/* Garante que a página inteira respeite os limites da tela e não crie scroll horizontal */
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Evita que elementos ultrapassem a largura do container principal */
+.mat-sidenav-container {
+  width: 100vw;
+  max-width: 100%;
+}
+
+/* Garante o comportamento correto do box-sizing em toda a aplicação */
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
 /* ==========================================================================
    SIDENAV ESCURO - CAIXA E BLOCOS 100% RETOS
    ========================================================================== */

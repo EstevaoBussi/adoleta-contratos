@@ -1,7 +1,7 @@
 <mat-sidenav-container class="sidenav-container" style="height: 100vh;">
   
   <!-- MENU LATERAL ESCURO -->
-  <mat-sidenav #drawer mode="side" opened class="dark-sidenav shadow" style="width: 260px;">
+  <mat-sidenav #drawer [mode]="sidenavMode" [(opened)]="sidenavOpened" class="dark-sidenav shadow" style="width: 260px;">
     
     <!-- Perfil do Usuário / Logotipo no Topo do Menu -->
     <div class="p-3 border-bottom border-secondary d-flex align-items-center justify-content-between">
@@ -9,8 +9,8 @@
         <!-- Logotipo da Adolêta Kids -->
         <img src="/images/logo.jpeg" alt="Adolêta Kids" style="width: 38px; height: 38px; object-fit: contain;" class="me-2 rounded-circle bg-white p-1">
         <div>
-          <h6 class="mb-0 text-white fw-bold" style="font-size: 0.9rem;">Adolêta Kids</h6>
-          <small class="text-white-50" style="font-size: 0.75rem;">Sistema de Gestão</small>
+          <h6 class="mb-0 text-white fw-bold" style="font-size: 0.9rem;">Adoleta Kids</h6>
+          <small class="text-white-50" style="font-size: 0.75rem;">Gestão</small>
         </div>
       </div>
       <mat-icon class="text-white-50 fs-5">unfold_more</mat-icon>
@@ -20,7 +20,9 @@
     <div class="py-2">
       
       <!-- Dashboard -->
-      <a routerLink="/" routerLinkActive="active-menu-item" [routerLinkActiveOptions]="{ exact: true }" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+      <a routerLink="/" routerLinkActive="active-menu-item" [routerLinkActiveOptions]="{ exact: true }" 
+         (click)="onMenuItemClick()" 
+         class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
         <mat-icon class="me-3 text-secondary">dashboard</mat-icon>
         <span class="fw-semibold">Dashboard</span>
       </a>
@@ -28,12 +30,16 @@
       <!-- Seção Contratos -->
       <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Contratos</div>
       
-      <a routerLink="/list" routerLinkActive="active-menu-item" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+      <a routerLink="/list" routerLinkActive="active-menu-item" 
+         (click)="onMenuItemClick()" 
+         class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
         <mat-icon class="me-3 text-secondary">list_alt</mat-icon>
         <span class="fw-medium">Lista Completa</span>
       </a>
 
-      <a routerLink="/new" routerLinkActive="active-menu-item" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
+      <a routerLink="/new" routerLinkActive="active-menu-item" 
+         (click)="onMenuItemClick()" 
+         class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none cursor-pointer">
         <mat-icon class="me-3 text-secondary">note_add</mat-icon>
         <span class="fw-medium">Novo Contrato</span>
       </a>
@@ -41,12 +47,12 @@
       <!-- Seção Gestão -->
       <div class="text-uppercase text-muted px-3 pt-3 pb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Gestão</div>
       
-      <a class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary">
+      <a (click)="onMenuItemClick()" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary cursor-pointer">
         <mat-icon class="me-3">payments</mat-icon>
         <span>Financeiro</span>
       </a>
 
-      <a class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary">
+      <a (click)="onMenuItemClick()" class="menu-link d-flex align-items-center px-3 py-3 text-decoration-none text-secondary cursor-pointer">
         <mat-icon class="me-3">bar_chart</mat-icon>
         <span>Relatórios</span>
       </a>
@@ -63,7 +69,7 @@
         <button type="button" mat-icon-button (click)="drawer.toggle()" class="me-2 text-white">
           <mat-icon>menu</mat-icon>
         </button>
-        <span class="fw-bold" style="font-size: 1rem;">Adolêta Kids - Sistema de Gestão de Contratos</span>
+        <span class="fw-bold" style="font-size: 1rem;">Adoleta Kids - Gestão</span>
       </div>
 
       <div class="d-flex align-items-center">
