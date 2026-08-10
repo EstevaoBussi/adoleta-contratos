@@ -138,7 +138,6 @@ public class ContractService {
             for (String fId : folders) {
                 if (fId == null || fId.isBlank()) continue;
                 String query = String.format("'%s' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false", fId);
-                // Solicitamos também os 'parents' para identificar o status na listagem sem precisar de outra chamada
                 FileList result = drive.files().list().setQ(query).setFields("files(id, name, parents)").execute();
                 if (result.getFiles() != null) {
                     allFiles.addAll(result.getFiles());
@@ -155,20 +154,19 @@ public class ContractService {
         return executarComResiliencia(() -> {
             File file = drive.files().get(fileId).setFields("name, parents").execute();
 
-            // Descobre o status atual com base na pasta pai do arquivo no Google Drive
             String statusAtual = descobrirStatusAtualDoArquivo(file);
 
             ValueRange response = sheets.spreadsheets().values()
-                    .get(fileId, "A1:K100")
+                    .get(fileId, "A1:L100")
                     .execute();
 
             List<List<Object>> values = response.getValues();
 
             if (values == null || values.isEmpty()) {
-                return new ContractDetailDto(fileId, file.getName(), statusAtual, new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", ""), List.of());
+                return new ContractDetailDto(fileId, file.getName(), statusAtual, new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", "", ""), List.of());
             }
 
-            EventDto eventData = new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", "");
+            EventDto eventData = new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", "", "");
             List<PaymentRecordDto> payments = new ArrayList<>();
             boolean lendoPagamentos = false;
 
@@ -212,7 +210,7 @@ public class ContractService {
 
     private EventDto extrairEventDto(List<Object> eventRow) {
         if (eventRow == null || eventRow.isEmpty()) {
-            return new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", "");
+            return new EventDto("", "", 0, "", "", 0.0, 0.0, "", "", "", "");
         }
         return new EventDto(
                 eventRow.size() > 0 ? eventRow.get(0).toString() : "",
@@ -224,7 +222,8 @@ public class ContractService {
                 eventRow.size() > 6 ? parseDoubleSafe(eventRow.get(6).toString()) : 0.0,
                 eventRow.size() > 7 ? eventRow.get(7).toString() : "",
                 eventRow.size() > 8 ? eventRow.get(8).toString() : "",
-                eventRow.size() > 9 ? eventRow.get(9).toString() : ""
+                eventRow.size() > 9 ? eventRow.get(9).toString() : "",
+                eventRow.size() > 10 ? eventRow.get(10).toString() : ""
         );
     }
 
@@ -279,7 +278,7 @@ public class ContractService {
             }
 
             List<List<Object>> initialData = new ArrayList<>();
-            initialData.add(List.of("Cliente", "Data do Evento", "Qtd Convidados", "Início", "Término", "Valor Parcela", "Valor Total", "Bolo", "Opcionais", "Descrição", "Calendar Event ID"));
+            initialData.add(List.of("Cliente", "Data do Evento", "Qtd Convidados", "Início", "Término", "Valor Parcela", "Valor Total", "Bolo", "Opcionais", "Descrição", "Telefone", "Calendar Event ID"));
             initialData.add(List.of(
                     formattedClientName,
                     eventDate,
@@ -291,11 +290,12 @@ public class ContractService {
                     event.bolo() != null ? event.bolo() : "",
                     event.opcionais() != null ? event.opcionais() : "",
                     event.descricao() != null ? event.descricao() : "",
+                    event.telefone() != null ? event.telefone() : "",
                     calendarEventId != null ? calendarEventId : ""
             ));
 
-            initialData.add(List.of("", "", "", "", "", "", "", "", "", "", ""));
-            initialData.add(List.of("Data Pagamento", "Valor", "Valor Pendente", "", "", "", "", "", "", "", ""));
+            initialData.add(List.of("", "", "", "", "", "", "", "", "", "", "", ""));
+            initialData.add(List.of("Data Pagamento", "Valor", "Valor Pendente", "", "", "", "", "", "", "", "", ""));
 
             if (dto.payments() != null && !dto.payments().isEmpty()) {
                 for (PaymentRecordDto payment : dto.payments()) {
@@ -303,14 +303,14 @@ public class ContractService {
                             payment.paymentDate() != null ? payment.paymentDate() : "",
                             payment.amount() != null ? payment.amount() : 0.0,
                             payment.pendingAmount() != null ? payment.pendingAmount() : 0.0,
-                            "", "", "", "", "", "", "", ""
+                            "", "", "", "", "", "", "", "", ""
                     ));
                 }
             }
 
             ValueRange body = new ValueRange().setValues(initialData);
             sheets.spreadsheets().values()
-                    .update(newFileId, "A1:K" + initialData.size(), body)
+                    .update(newFileId, "A1:L" + initialData.size(), body)
                     .setValueInputOption("USER_ENTERED")
                     .execute();
 
@@ -356,7 +356,8 @@ public class ContractService {
 
             String existingCalendarEventId = null;
             try {
-                ValueRange existingData = sheets.spreadsheets().values().get(fileId, "K2").execute();
+                // Coluna L (índice 11) armazena o Calendar Event ID agora
+                ValueRange existingData = sheets.spreadsheets().values().get(fileId, "L2").execute();
                 if (existingData.getValues() != null && !existingData.getValues().isEmpty()) {
                     List<Object> row = existingData.getValues().get(0);
                     if (!row.isEmpty() && row.get(0) != null) {
@@ -388,11 +389,11 @@ public class ContractService {
             }
 
             sheets.spreadsheets().values()
-                    .clear(fileId, "A1:K100", new ClearValuesRequest())
+                    .clear(fileId, "A1:L100", new ClearValuesRequest())
                     .execute();
 
             List<List<Object>> updatedData = new ArrayList<>();
-            updatedData.add(List.of("Cliente", "Data do Evento", "Qtd Convidados", "Início", "Término", "Valor Parcela", "Valor Total", "Bolo", "Opcionais", "Descrição", "Calendar Event ID"));
+            updatedData.add(List.of("Cliente", "Data do Evento", "Qtd Convidados", "Início", "Término", "Valor Parcela", "Valor Total", "Bolo", "Opcionais", "Descrição", "Telefone", "Calendar Event ID"));
             updatedData.add(List.of(
                     formattedClientName,
                     eventDate,
@@ -404,11 +405,12 @@ public class ContractService {
                     event.bolo() != null ? event.bolo() : "",
                     event.opcionais() != null ? event.opcionais() : "",
                     event.descricao() != null ? event.descricao() : "",
+                    event.telefone() != null ? event.telefone() : "",
                     calendarEventId != null ? calendarEventId : ""
             ));
 
-            updatedData.add(List.of("", "", "", "", "", "", "", "", "", "", ""));
-            updatedData.add(List.of("Data Pagamento", "Valor", "Valor Pendente", "", "", "", "", "", "", "", ""));
+            updatedData.add(List.of("", "", "", "", "", "", "", "", "", "", "", ""));
+            updatedData.add(List.of("Data Pagamento", "Valor", "Valor Pendente", "", "", "", "", "", "", "", "", ""));
 
             if (dto.payments() != null && !dto.payments().isEmpty()) {
                 for (PaymentRecordDto payment : dto.payments()) {
@@ -416,14 +418,14 @@ public class ContractService {
                             payment.paymentDate() != null ? payment.paymentDate() : "",
                             payment.amount() != null ? payment.amount() : 0.0,
                             payment.pendingAmount() != null ? payment.pendingAmount() : 0.0,
-                            "", "", "", "", "", "", "", ""
+                            "", "", "", "", "", "", "", "", ""
                     ));
                 }
             }
 
             ValueRange body = new ValueRange().setValues(updatedData);
             sheets.spreadsheets().values()
-                    .update(fileId, "A1:K" + updatedData.size(), body)
+                    .update(fileId, "A1:L" + updatedData.size(), body)
                     .setValueInputOption("USER_ENTERED")
                     .execute();
 
@@ -440,7 +442,8 @@ public class ContractService {
             String summary = String.format("EVENTO - %s (ADOLÊTA KIDS)", eventDto.clientName());
             String driveLink = String.format("https://docs.google.com/spreadsheets/d/%s/edit", fileId);
 
-            String description = String.format("Convidados: %d\nBolo: %s\nOpcionais: %s\nObs: \n%s\n\nPlanilha do Contrato: %s",
+            String description = String.format("Telefone: %s\nConvidados: %d\nBolo: %s\nOpcionais: %s\nObs: \n%s\n\nPlanilha do Contrato: %s",
+                    eventDto.telefone() == null ? "" : eventDto.telefone(),
                     eventDto.guestCount() != null ? eventDto.guestCount() : 0,
                     eventDto.bolo() == null ? "" : eventDto.bolo(),
                     eventDto.opcionais() == null ? "" : eventDto.opcionais(),
@@ -492,7 +495,7 @@ public class ContractService {
                 .setColor(new Color().setRed(0.0f).setGreen(0.0f).setBlue(0.0f));
 
         requests.add(new Request().setUpdateBorders(new UpdateBordersRequest()
-                .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(0).setEndRowIndex(2).setStartColumnIndex(0).setEndColumnIndex(11))
+                .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(0).setEndRowIndex(2).setStartColumnIndex(0).setEndColumnIndex(12))
                 .setTop(borderStyle).setBottom(borderStyle).setLeft(borderStyle).setRight(borderStyle)
                 .setInnerHorizontal(borderStyle).setInnerVertical(borderStyle)
         ));
@@ -508,7 +511,7 @@ public class ContractService {
         CellFormat headerFormat = new CellFormat().setTextFormat(new TextFormat().setBold(true));
 
         requests.add(new Request().setRepeatCell(new RepeatCellRequest()
-                .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(0).setEndRowIndex(1).setStartColumnIndex(0).setEndColumnIndex(11))
+                .setRange(new GridRange().setSheetId(sheetId).setStartRowIndex(0).setEndRowIndex(1).setStartColumnIndex(0).setEndColumnIndex(12))
                 .setCell(new CellData().setUserEnteredFormat(headerFormat))
                 .setFields("userEnteredFormat.textFormat.bold")));
 

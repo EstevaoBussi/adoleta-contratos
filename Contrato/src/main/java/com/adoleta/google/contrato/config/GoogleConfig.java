@@ -75,7 +75,7 @@ public class GoogleConfig {
         )
                 .setDataStoreFactory(dataStoreFactory)
                 .setAccessType("offline")
-                .setApprovalPrompt("auto") // Evita forçar nova aprovação se o refresh token já existir
+                .setApprovalPrompt("force") // Evita forçar nova aprovação se o refresh token já existir
                 .build();
 
         // 1. Tenta carregar uma credencial que já foi salva anteriormente no disco

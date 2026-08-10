@@ -9,6 +9,7 @@ export interface EventDto {
   bolo: string;
   opcionais: string;
   descricao: string;
+  telefone?: string; 
 }
 
 export interface PaymentRecordDto {

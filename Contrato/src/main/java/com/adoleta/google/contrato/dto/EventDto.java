@@ -17,7 +17,8 @@ public record EventDto(
         Double totalValue,
         String bolo,
         String opcionais,
-        String descricao
+        String descricao,
+        String telefone
 ) {
     public EventDto {
         if (clientName != null) {
@@ -31,6 +32,9 @@ public record EventDto(
         }
         if (descricao != null) {
             descricao = descricao.trim().toUpperCase();
+        }
+        if (telefone != null) {
+            telefone = telefone.trim();
         }
     }
 }

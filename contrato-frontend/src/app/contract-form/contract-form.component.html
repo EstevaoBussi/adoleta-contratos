@@ -57,6 +57,16 @@
 
         <!-- RESTANTE DOS CAMPOS DO EVENTO (Dentro de formGroupName="event") -->
         <ng-container formGroupName="event">
+          
+          <!-- TELEFONE -->
+          <div class="col-md-6">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Telefone / WhatsApp</mat-label>
+              <mat-icon matPrefix class="me-2 text-muted">phone</mat-icon>
+              <input matInput formControlName="telefone" placeholder="Ex: (11) 99999-9999">
+            </mat-form-field>
+          </div>
+
           <!-- DATA DA FESTA -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
@@ -67,9 +77,6 @@
               </mat-error>
             </mat-form-field>
           </div>
-
-          <!-- ESPAÇAMENTO VAZIO PARA ALINHAR A GRADE -->
-          <div class="col-md-6 no-print"></div>
 
           <!-- SELEÇÃO RÁPIDA DE PERÍODO (Apenas visível na tela) -->
           <div class="col-12 no-print">

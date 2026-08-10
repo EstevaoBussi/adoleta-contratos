@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router'; // <-- 1. Importado o ActivatedRoute
+import { Router, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { ContractService } from '../services/contract.service';
 import { ContractDetailDto } from '../models/contract.model';
@@ -33,7 +33,7 @@ export class ContractFormComponent implements OnInit {
   public fb = inject(FormBuilder);
   private contractService = inject(ContractService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute); // <-- 2. Injetado o ActivatedRoute
+  private route = inject(ActivatedRoute);
   private location = inject(Location);
   private cdr = inject(ChangeDetectorRef);
 
@@ -53,7 +53,6 @@ export class ContractFormComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
 
-    // 3. Captura o parâmetro 'id' da rota (ex: /edit/123-abc)
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.currentFileId = idParam;
@@ -76,7 +75,8 @@ export class ContractFormComponent implements OnInit {
         totalValue: [0, [Validators.required, Validators.min(0)]],
         bolo: [''],
         opcionais: [''],
-        descricao: ['']
+        descricao: [''],
+        telefone: [''] // Campo adicionado aqui
       }),
       payments: this.fb.array([])
     });

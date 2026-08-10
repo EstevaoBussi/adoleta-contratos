@@ -13,10 +13,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/contracts")
-@CrossOrigin(origins = "*") // Permite chamadas do frontend Angular
+@CrossOrigin(origins = "*")
 public class ContractController implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(ContractController.class);
 
@@ -26,42 +27,33 @@ public class ContractController implements Serializable {
         this.contractService = contractService;
     }
 
-    /**
-     * 1. GET /api/contracts
-     * Lista todas as planilhas de contrato presentes nas pastas de status do Google Drive.
-     */
     @GetMapping
-    public ResponseEntity<List<ContractSummaryDto>> listContracts() {
+    public ResponseEntity<?> listContracts() {
         try {
             List<ContractSummaryDto> contracts = contractService.listContracts();
             return ResponseEntity.ok(contracts);
         } catch (Exception e) {
-            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // Passar o 'e' como último argumento faz o SLF4J printar o erro completo no console
+            logger.error("Erro ao listar contratos: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erro ao listar contratos", "details", e.getMessage()));
         }
     }
 
-    /**
-     * 2. GET /api/contracts/{fileId}
-     * Obtém os dados detalhados (Evento + Histórico de Pagamentos) de uma planilha específica.
-     */
     @GetMapping("/{fileId}")
-    public ResponseEntity<ContractDetailDto> getContractDetail(@PathVariable String fileId) {
+    public ResponseEntity<?> getContractDetail(@PathVariable String fileId) {
         try {
             ContractDetailDto contractDetail = contractService.getContractDetail(fileId);
             return ResponseEntity.ok(contractDetail);
         } catch (Exception e) {
-            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            logger.error("Erro ao buscar detalhe do contrato {}: ", fileId, e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Contrato não encontrado ou erro na API", "details", e.getMessage()));
         }
     }
 
-    /**
-     * 3. POST /api/contracts?status=ABERTO
-     * Cria um novo arquivo de planilha no Drive e o direciona para a pasta do status correspondente.
-     */
     @PostMapping
-    public ResponseEntity<ContractSummaryDto> createContract(
+    public ResponseEntity<?> createContract(
             @RequestBody @Valid ContractDetailDto request,
             @RequestParam(value = "status", defaultValue = "ABERTO") String status
     ) {
@@ -69,49 +61,46 @@ public class ContractController implements Serializable {
             ContractSummaryDto createdContract = contractService.createContract(request, status);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdContract);
         } catch (ResponseStatusException e) {
-            // Propaga o status exato lançado pelo serviço (ex: 400 Bad Request)
-            return ResponseEntity.status(e.getStatusCode()).build();
+            logger.warn("Regra de negócio violada na criação: {}", e.getReason());
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("error", e.getReason() != null ? e.getReason() : "Erro de validação"));
         } catch (Exception e) {
-            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Erro ao criar contrato: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erro interno ao criar contrato", "details", e.getMessage()));
         }
     }
 
-    /**
-     * 4. PUT /api/contracts/{fileId}?status=QUITADO
-     * Atualiza as informações, move o contrato de pasta no Drive e gerencia a agenda conforme o status.
-     */
     @PutMapping("/{fileId}")
-    public ResponseEntity<Void> updateContract(
+    public ResponseEntity<?> updateContract(
             @PathVariable String fileId,
             @RequestBody ContractDetailDto contractDetailDto,
             @RequestParam(value = "status", defaultValue = "ABERTO") String status
     ) {
         try {
             contractService.updateContract(fileId, contractDetailDto, status);
+            // Retornar noContent() é válido, mas se o proxy reclamar, mude para ResponseEntity.ok() com uma mensagem
             return ResponseEntity.noContent().build();
         } catch (ResponseStatusException e) {
-            // AQUI ESTÁ A CHAVE: Se for uma regra de negócio (ResponseStatusException),
-            // devolvemos exatamente o status HTTP que ela carrega (400) em vez de fixar 500!
-            return ResponseEntity.status(e.getStatusCode()).build();
+            logger.warn("Regra de negócio violada na atualização do contrato {}: {}", fileId, e.getReason());
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("error", e.getReason() != null ? e.getReason() : "Erro na atualização"));
         } catch (Exception e) {
-            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Erro ao atualizar contrato {}: ", fileId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erro interno ao atualizar contrato", "details", e.getMessage()));
         }
     }
 
-    /**
-     * Endpoint para buscar contratos cujo nome contenha o termo informado em todas as pastas de status.
-     * Exemplo: GET /api/contracts/search?title=mariana
-     */
     @GetMapping("/search")
-    public ResponseEntity<List<ContractSummaryDto>> searchContracts(@RequestParam("title") String title) {
+    public ResponseEntity<?> searchContracts(@RequestParam("title") String title) {
         try {
             List<ContractSummaryDto> results = contractService.searchByTitle(title);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            logger.error("ERRO AO TENTAR BUSCAR CONTRATOS: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.error("Erro ao buscar contratos por título [{}]: ", title, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erro na busca de contratos", "details", e.getMessage()));
         }
     }
 }
