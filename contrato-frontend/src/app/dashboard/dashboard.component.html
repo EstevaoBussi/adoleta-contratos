@@ -1,0 +1,45 @@
+<div class="container py-4">
+  <!-- Cabeçalho -->
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1" style="color: #2b303b;">Bem-vindo ao Adolêta Kids</h2>
+    <p class="text-muted">Gerencie seus eventos e contratos de forma rápida.</p>
+  </div>
+
+  <!-- Cards de Indicadores (Dashboard Real) -->
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <h6 class="text-uppercase text-muted small fw-bold">Em Aberto</h6>
+        <h2 class="fw-bold text-warning display-6">{{ openContractsCount }}</h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <h6 class="text-uppercase text-muted small fw-bold">Quitados</h6>
+        <h2 class="fw-bold text-success display-6">{{ paidContractsCount }}</h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+        <h6 class="text-uppercase text-muted small fw-bold">Realizados</h6>
+        <h2 class="fw-bold text-primary display-6">{{ completedContractsCount }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botões de Ação Rápida -->
+<div class="row g-4">
+  <div class="col-md-6">
+    <!-- O routerLink aqui é o que faz a mágica -->
+    <button routerLink="/new" class="btn btn-primary btn-lg w-100 py-4 shadow-sm border-0">
+      <span class="fw-bold fs-5">NOVO CONTRATO</span>
+    </button>
+  </div>
+  <div class="col-md-6">
+    <!-- O routerLink aqui aponta para a rota de listagem -->
+    <button routerLink="/list" class="btn btn-secondary btn-lg w-100 py-4 shadow-sm border-0">
+      <span class="fw-bold fs-5">LISTA DE CONTRATOS</span>
+    </button>
+  </div>
+</div>
+</div>
