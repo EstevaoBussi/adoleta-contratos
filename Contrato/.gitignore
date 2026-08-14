@@ -2,6 +2,7 @@ HELP.md
 
 **/src/main/resources/credentials.json
 "**/tokens/"
+tokens/
 
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -35,3 +36,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Tokens & Secrets ###
+tokens/
+**/tokens/**

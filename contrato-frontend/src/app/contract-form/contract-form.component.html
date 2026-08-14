@@ -43,7 +43,7 @@
           </mat-form-field>
         </div>
 
-        <!-- STATUS DO CONTRATO (FORA do formGroupName="event", no nível principal) -->
+        <!-- STATUS DO CONTRATO -->
         <div class="col-md-6 no-print">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Status do Contrato</mat-label>
@@ -55,10 +55,9 @@
           </mat-form-field>
         </div>
 
-        <!-- RESTANTE DOS CAMPOS DO EVENTO (Dentro de formGroupName="event") -->
+        <!-- RESTANTE DOS CAMPOS DO EVENTO -->
         <ng-container formGroupName="event">
           
-          <!-- TELEFONE -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Telefone / WhatsApp</mat-label>
@@ -67,116 +66,91 @@
             </mat-form-field>
           </div>
 
-          <!-- DATA DA FESTA -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Data da Festa / Evento</mat-label>
               <input matInput type="date" formControlName="eventDate">
-              <mat-error *ngIf="contractForm.get('event.eventDate')?.hasError('required')">
-                A data do evento é obrigatória.
-              </mat-error>
             </mat-form-field>
           </div>
 
-          <!-- SELEÇÃO RÁPIDA DE PERÍODO (Apenas visível na tela) -->
+          <!-- SELEÇÃO RÁPIDA -->
           <div class="col-12 no-print">
-            <label class="form-label small fw-semibold text-muted d-block mb-2">Seleção Rápida de Período (Google Calendar):</label>
+            <label class="form-label small fw-semibold text-muted d-block mb-2">Seleção Rápida de Período:</label>
             <div class="d-flex gap-2 mb-2">
               <button type="button" mat-stroked-button (click)="setShift('13:30', '17:30')" class="btn-sm border-secondary text-dark">
-                <mat-icon class="text-warning">wb_sunny</mat-icon> Tarde (13:30 - 17:30)
+                <mat-icon class="text-warning">wb_sunny</mat-icon> Tarde
               </button>
               <button type="button" mat-stroked-button (click)="setShift('19:30', '23:30')" class="btn-sm border-secondary text-dark">
-                <mat-icon class="text-primary">nights_stay</mat-icon> Noite (19:30 - 23:30)
+                <mat-icon class="text-primary">nights_stay</mat-icon> Noite
               </button>
             </div>
           </div>
 
-          <!-- HORÁRIO DE INÍCIO -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Horário de Início (Start Time)</mat-label>
+              <mat-label>Horário de Início</mat-label>
               <input matInput formControlName="startTime" placeholder="Ex: 13:30">
-              <mat-error *ngIf="contractForm.get('event.startTime')?.hasError('required')">
-                O horário de início é obrigatório.
-              </mat-error>
             </mat-form-field>
           </div>
 
-          <!-- HORÁRIO DE TÉRMINO -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Horário de Término (End Time)</mat-label>
+              <mat-label>Horário de Término</mat-label>
               <input matInput formControlName="endTime" placeholder="Ex: 17:30">
-              <mat-error *ngIf="contractForm.get('event.endTime')?.hasError('required')">
-                O horário de término é obrigatório.
-              </mat-error>
             </mat-form-field>
           </div>
 
-          <!-- QUANTIDADE DE CONVIDADOS -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Quantidade de Convidados</mat-label>
-              <input matInput type="number" formControlName="guestCount" placeholder="Ex: 50">
-              <mat-error *ngIf="contractForm.get('event.guestCount')?.hasError('required')">
-                A quantidade de convidados é obrigatória.
-              </mat-error>
-              <mat-error *ngIf="contractForm.get('event.guestCount')?.hasError('min')">
-                Deve ser maior que zero.
-              </mat-error>
+              <input matInput type="number" formControlName="guestCount">
             </mat-form-field>
           </div>
 
-          <!-- VALOR DA PARCELA -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Valor da Parcela (R$)</mat-label>
               <span matPrefix class="me-1 text-muted">R$</span>
-              <input matInput type="number" step="0.01" formControlName="installmentValue" placeholder="0,00">
+              <input matInput type="number" step="0.01" formControlName="installmentValue">
             </mat-form-field>
           </div>
 
-          <!-- VALOR TOTAL -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Valor Total do Contrato (R$)</mat-label>
+              <mat-label>Valor Total (R$)</mat-label>
               <span matPrefix class="me-1 text-muted">R$</span>
-              <input matInput type="number" step="0.01" formControlName="totalValue" placeholder="0,00">
+              <input matInput type="number" step="0.01" formControlName="totalValue">
             </mat-form-field>
           </div>
 
-          <!-- BOLO -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Bolo</mat-label>
-              <input matInput formControlName="bolo" placeholder="Ex: Brigadeiro com Morango">
+              <input matInput formControlName="bolo">
             </mat-form-field>
           </div>
 
-          <!-- OPCIONAIS -->
           <div class="col-md-6">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Opcionais</mat-label>
-              <input matInput formControlName="opcionais" placeholder="Ex: Máquina de algodão doce, Personagem...">
+              <input matInput formControlName="opcionais">
             </mat-form-field>
           </div>
 
-          <!-- DESCRIÇÃO -->
           <div class="col-12">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Descrição / Observações</mat-label>
-              <textarea matInput formControlName="descricao" rows="3" placeholder="Digite as observações gerais, regras ou detalhes combinados..."></textarea>
+              <textarea matInput formControlName="descricao" rows="3"></textarea>
             </mat-form-field>
           </div>
         </ng-container>
-
       </div>
 
       <!-- SEÇÃO 2: HISTÓRICO DE PAGAMENTOS -->
       <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
         <h5 class="text-dark mb-0 fw-bold d-flex align-items-center" style="color: #2b303b !important;">
           <mat-icon class="me-2 no-print" style="color: #d97706;">payments</mat-icon> Histórico de Pagamentos
-      </h5>
+        </h5>
         <button type="button" (click)="addPayment()" mat-stroked-button class="no-print btn-sm border-secondary text-dark">
           <mat-icon class="text-success">add</mat-icon> Adicionar Parcela
         </button>
@@ -210,20 +184,27 @@
           </div>
 
           <div class="col-md-1 text-end no-print">
-            <button type="button" (click)="removePayment(i)" mat-icon-button color="warn" title="Excluir Parcela">
-              <mat-icon>delete</mat-icon>
-            </button>
+            <button type="button" (click)="removePayment(i)" mat-icon-button color="warn"><mat-icon>delete</mat-icon></button>
           </div>
-        </div>
-
-        <div *ngIf="payments.controls.length === 0" class="text-center py-4 text-muted bg-light rounded border border-dashed">
-          <mat-icon class="text-muted mb-1" style="font-size: 32px; height: 32px; width: 32px;">receipt_long</mat-icon>
-          <p class="mb-0 small">Nenhum pagamento lançado ainda.</p>
         </div>
       </div>
 
       <!-- RODAPÉ E BOTÕES DE SALVAR -->
       <div class="d-grid gap-2 d-md-flex justify-content-md-end no-print mt-4">
+        
+        <!-- Botão Novo Contrato (Aparece apenas na edição) -->
+        <button 
+          *ngIf="currentFileId"
+          type="button" 
+          mat-stroked-button 
+          class="px-4 py-2 fw-bold" 
+          (click)="navigateToNew()"
+          style="color: #2b303b !important; border-color: #2b303b !important;">
+          <mat-icon>add_circle_outline</mat-icon>
+          Novo Contrato
+        </button>
+
+        <!-- Botão Salvar / Atualizar -->
         <button 
           type="submit" 
           mat-flat-button 
@@ -235,26 +216,5 @@
         </button>
       </div>
     </form>
-
-    <!-- ASSINATURA NA IMPRESSÃO -->
-    <div class="d-none d-print-block mt-5 pt-4 text-center">
-      <div class="row">
-        <div class="col-6">
-          <p class="mb-0">__________________________________________</p>
-          <small>Adolêta Kids Buffet</small>
-        </div>
-        <div class="col-6">
-          <p class="mb-0">__________________________________________</p>
-          <small>Contratante / Responsável</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- MENSAGENS E ALERTAS -->
-    <div *ngIf="message" class="alert alert-info mt-4 d-flex align-items-center no-print shadow-sm" role="alert">
-      <mat-icon class="me-2 text-info">info</mat-icon>
-      <div>{{ message }}</div>
-    </div>
-
   </mat-card-content>
 </mat-card>

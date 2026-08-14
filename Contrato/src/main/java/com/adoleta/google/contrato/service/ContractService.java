@@ -356,7 +356,6 @@ public class ContractService {
 
             String existingCalendarEventId = null;
             try {
-                // Coluna L (índice 11) armazena o Calendar Event ID agora
                 ValueRange existingData = sheets.spreadsheets().values().get(fileId, "L2").execute();
                 if (existingData.getValues() != null && !existingData.getValues().isEmpty()) {
                     List<Object> row = existingData.getValues().get(0);
@@ -536,9 +535,24 @@ public class ContractService {
     }
 
     public List<ContractSummaryDto> searchByTitle(String title) throws Exception {
+        return searchByTitle(title, null);
+    }
+
+    public List<ContractSummaryDto> searchByTitle(String title, String status) throws Exception {
         return executarComResiliencia(() -> {
             String sanitizedTitle = title != null ? title.replace("'", "\\'") : "";
-            List<String> folders = List.of(folderAbertoId, folderQuitadoId, folderCanceladoId, folderRealizadoId);
+
+            // Se um status específico foi informado, busca apenas na pasta daquele status para otimizar
+            List<String> folders = new ArrayList<>();
+            if (status != null && !status.isBlank() && !status.equalsIgnoreCase("TODOS")) {
+                String singleFolder = getFolderIdByStatus(status);
+                if (singleFolder != null && !singleFolder.isBlank()) {
+                    folders.add(singleFolder);
+                }
+            } else {
+                folders = List.of(folderAbertoId, folderQuitadoId, folderCanceladoId, folderRealizadoId);
+            }
+
             List<ContractSummaryDto> summaries = new ArrayList<>();
 
             for (String fId : folders) {

@@ -1,6 +1,6 @@
 <mat-card class="shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
   
-  <!-- CABEÇALHO (Tom Neutro e Harmonioso) -->
+  <!-- CABEÇALHO (Tom Neutro e Harmonioso com Botão de Novo Contrato) -->
   <mat-card-header class="text-white py-3 px-4 d-flex justify-content-between align-items-center w-100" style="background-color: #2b303b !important; margin: 0; display: flex; align-items: center; justify-content: space-between;">
     <div class="d-flex align-items-center">
       <mat-icon class="me-3 fs-3 text-white" style="height: 32px; width: 32px; font-size: 32px;">folder_shared</mat-icon>
@@ -9,21 +9,49 @@
         <small class="text-white-50">Gerencie e edite os contratos armazenados</small>
       </div>
     </div>
-    <button (click)="loadContracts()" mat-stroked-button class="bg-white text-dark fw-semibold btn-sm border-0">
-      <mat-icon class="me-1">refresh</mat-icon> Atualizar Lista
-    </button>
+    
+    <div class="d-flex align-items-center gap-2">
+      <!-- Botão para Novo Contrato -->
+      <button (click)="navigateToNewContract()" mat-flat-button class="bg-warning text-dark fw-semibold btn-sm">
+        <mat-icon class="me-1" style="font-size: 18px; height: 18px; width: 18px;">add</mat-icon> Novo Contrato
+      </button>
+
+      <!-- Botão Atualizar Lista -->
+      <button (click)="loadContracts()" mat-stroked-button class="bg-white text-dark fw-semibold btn-sm border-0">
+        <mat-icon class="me-1">refresh</mat-icon> Atualizar Lista
+      </button>
+    </div>
   </mat-card-header>
 
   <mat-card-content class="p-4">
     
-    <!-- CAMPO DE BUSCA -->
-    <div class="row mb-4">
-      <div class="col-md-8 mx-auto">
+    <!-- CAMPO DE BUSCA E FILTRO POR STATUS -->
+    <div class="row mb-4 align-items-center">
+      <!-- Busca por nome -->
+      <div class="col-md-7 mb-2 mb-md-0">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Buscar por nome do cliente ou ID da planilha...</mat-label>
           <mat-icon matPrefix class="text-muted me-2">search</mat-icon>
           <input matInput [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Digite para filtrar...">
           <button *ngIf="searchTerm" matSuffix mat-icon-button aria-label="Limpar" (click)="searchTerm=''; onSearchChange()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+
+      <!-- Filtro por Status -->
+      <div class="col-md-5">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Filtrar por Status</mat-label>
+          <mat-icon matPrefix class="text-muted me-2">filter_list</mat-icon>
+          <mat-select [(ngModel)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+            <mat-option value="TODOS">Todos os Status</mat-option>
+            <mat-option value="ABERTO">Aberto</mat-option>
+            <mat-option value="QUITADO">Quitado</mat-option>
+            <mat-option value="REALIZADO">Realizado</mat-option>
+            <mat-option value="CANCELADO">Cancelado</mat-option>
+          </mat-select>
+          <button *ngIf="statusFilter && statusFilter !== 'TODOS'" matSuffix mat-icon-button aria-label="Limpar" (click)="statusFilter='TODOS'; onStatusFilterChange()">
             <mat-icon>close</mat-icon>
           </button>
         </mat-form-field>
@@ -74,6 +102,7 @@
             <span class="badge px-3 py-2 fw-semibold" 
                   [ngClass]="{
                     'bg-warning text-dark': contract.status === 'ABERTO',
+                    'bg-info text-dark': contract.status === 'PENDENTE',
                     'bg-success text-white': contract.status === 'QUITADO',
                     'bg-primary text-white': contract.status === 'REALIZADO',
                     'bg-danger text-white': contract.status === 'CANCELADO'

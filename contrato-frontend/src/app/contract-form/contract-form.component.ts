@@ -71,12 +71,12 @@ export class ContractFormComponent implements OnInit {
         guestCount: [50, [Validators.required, Validators.min(1)]],
         startTime: ['13:30', Validators.required],
         endTime: ['17:30', Validators.required],
-        installmentValue: [0, [Validators.required, Validators.min(0)]],
-        totalValue: [0, [Validators.required, Validators.min(0)]],
+        installmentValue: [null, [Validators.required, Validators.min(0)]],
+        totalValue: [null, [Validators.required, Validators.min(0)]],
         bolo: [''],
         opcionais: [''],
         descricao: [''],
-        telefone: [''] // Campo adicionado aqui
+        telefone: ['']
       }),
       payments: this.fb.array([])
     });
@@ -268,6 +268,10 @@ export class ContractFormComponent implements OnInit {
 
   printContract(): void {
     window.print();
+  }
+
+  navigateToNew(): void {
+    this.router.navigate(['/new']); // Altere para a rota correta do seu projeto se necessário
   }
 
   private handleBackendError(err: any, defaultMessage: string): void {

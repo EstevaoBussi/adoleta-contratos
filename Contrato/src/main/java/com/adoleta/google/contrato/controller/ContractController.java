@@ -33,7 +33,6 @@ public class ContractController implements Serializable {
             List<ContractSummaryDto> contracts = contractService.listContracts();
             return ResponseEntity.ok(contracts);
         } catch (Exception e) {
-            // Passar o 'e' como último argumento faz o SLF4J printar o erro completo no console
             logger.error("Erro ao listar contratos: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erro ao listar contratos", "details", e.getMessage()));
@@ -79,7 +78,6 @@ public class ContractController implements Serializable {
     ) {
         try {
             contractService.updateContract(fileId, contractDetailDto, status);
-            // Retornar noContent() é válido, mas se o proxy reclamar, mude para ResponseEntity.ok() com uma mensagem
             return ResponseEntity.noContent().build();
         } catch (ResponseStatusException e) {
             logger.warn("Regra de negócio violada na atualização do contrato {}: {}", fileId, e.getReason());
@@ -93,12 +91,16 @@ public class ContractController implements Serializable {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchContracts(@RequestParam("title") String title) {
+    public ResponseEntity<?> searchContracts(
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "status", required = false) String status
+    ) {
         try {
-            List<ContractSummaryDto> results = contractService.searchByTitle(title);
+            // Passamos o título e o status direto para o service aproveitar a otimização de pastas
+            List<ContractSummaryDto> results = contractService.searchByTitle(title, status);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
-            logger.error("Erro ao buscar contratos por título [{}]: ", title, e);
+            logger.error("Erro ao buscar contratos [título: {}, status: {}]: ", title, status, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erro na busca de contratos", "details", e.getMessage()));
         }
