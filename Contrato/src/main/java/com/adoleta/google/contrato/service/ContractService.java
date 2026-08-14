@@ -11,6 +11,8 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.util.List;
 
 @Service
 public class ContractService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ContractService.class);
 
     private final Drive drive;
     private final Sheets sheets;
@@ -147,6 +151,24 @@ public class ContractService {
             return allFiles.stream()
                     .map(f -> new ContractSummaryDto(f.getId(), f.getName(), descobrirStatusAtualDoArquivo(f)))
                     .toList();
+        });
+    }
+
+    public List<ContractDetailDto> listDetailedContracts() throws Exception {
+        return executarComResiliencia(() -> {
+            List<ContractSummaryDto> summaries = listContracts();
+            List<ContractDetailDto> detailedList = new ArrayList<>();
+
+            for (ContractSummaryDto summary : summaries) {
+                try {
+                    ContractDetailDto detail = getContractDetail(summary.id());
+                    detailedList.add(detail);
+                } catch (Exception e) {
+                    logger.warn("Não foi possível carregar detalhes do contrato ID {}: {}", summary.id(), e.getMessage());
+                }
+            }
+
+            return detailedList;
         });
     }
 
@@ -542,7 +564,6 @@ public class ContractService {
         return executarComResiliencia(() -> {
             String sanitizedTitle = title != null ? title.replace("'", "\\'") : "";
 
-            // Se um status específico foi informado, busca apenas na pasta daquele status para otimizar
             List<String> folders = new ArrayList<>();
             if (status != null && !status.isBlank() && !status.equalsIgnoreCase("TODOS")) {
                 String singleFolder = getFolderIdByStatus(status);
@@ -576,5 +597,19 @@ public class ContractService {
             }
             return summaries;
         });
+    }
+
+    public List<ContractDetailDto> searchDetailedByTitle(String title, String status) throws Exception {
+        List<ContractSummaryDto> summaries = searchByTitle(title, status);
+        List<ContractDetailDto> detailedList = new ArrayList<>();
+
+        for (ContractSummaryDto summary : summaries) {
+            try {
+                detailedList.add(getContractDetail(summary.id()));
+            } catch (Exception e) {
+                logger.warn("Erro ao buscar detalhes do contrato {} durante a busca detalhada: {}", summary.id(), e.getMessage());
+            }
+        }
+        return detailedList;
     }
 }

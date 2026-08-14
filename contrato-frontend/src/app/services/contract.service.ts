@@ -8,7 +8,6 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class ContractService {
-  // Usa o environment e concatena com o recurso de contracts
   private readonly API_URL = `${environment.apiUrl}/api/contracts`;
 
   constructor(private http: HttpClient) {}
@@ -23,7 +22,7 @@ export class ContractService {
     return this.http.get<ContractDetailDto>(`${this.API_URL}/${fileId}`);
   }
 
-  // Criar novo contrato no Google Sheets via Spring (POST) - Aceita status opcionalmente
+  // Criar novo contrato no Google Sheets via Spring (POST)
   create(contract: ContractDetailDto, status: string = 'ABERTO'): Observable<ContractSummaryDto> {
     const params = new HttpParams().set('status', status);
     return this.http.post<ContractSummaryDto>(this.API_URL, contract, { params });
@@ -35,8 +34,26 @@ export class ContractService {
     return this.http.put<void>(`${this.API_URL}/${fileId}`, contract, { params });
   }
 
-  // Método novo para buscar por título no backend
+  /**
+   * Busca unificada permitindo filtrar por título, status e carregar detalhes completos (details=true)
+   */
+  search(title?: string, status?: string, details: boolean = false): Observable<any[]> {
+    let params = new HttpParams().set('details', details.toString());
+    
+    if (title) {
+      params = params.set('title', title);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+
+    return this.http.get<any[]>(`${this.API_URL}/search`, { params });
+  }
+
+  /**
+   * Método de compatibilidade para a tela de listagem que busca por título
+   */
   searchByTitle(title: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URL}/search?title=${encodeURIComponent(title)}`);
+    return this.search(title, undefined, false);
   }
 }

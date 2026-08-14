@@ -93,14 +93,21 @@ public class ContractController implements Serializable {
     @GetMapping("/search")
     public ResponseEntity<?> searchContracts(
             @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "status", required = false) String status
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "details", defaultValue = "false") boolean details
     ) {
         try {
-            // Passamos o título e o status direto para o service aproveitar a otimização de pastas
-            List<ContractSummaryDto> results = contractService.searchByTitle(title, status);
-            return ResponseEntity.ok(results);
+            if (details) {
+                // Retorna detalhes completos para o front end (ex: Dashboard)
+                List<ContractDetailDto> detailedResults = contractService.searchDetailedByTitle(title, status);
+                return ResponseEntity.ok(detailedResults);
+            } else {
+                // Retorna apenas resumos
+                List<ContractSummaryDto> results = contractService.searchByTitle(title, status);
+                return ResponseEntity.ok(results);
+            }
         } catch (Exception e) {
-            logger.error("Erro ao buscar contratos [título: {}, status: {}]: ", title, status, e);
+            logger.error("Erro ao buscar contratos [título: {}, status: {}, details: {}]: ", title, status, details, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Erro na busca de contratos", "details", e.getMessage()));
         }

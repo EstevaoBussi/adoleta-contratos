@@ -1,45 +1,74 @@
 <div class="container py-4">
-  <!-- Cabeçalho -->
-  <div class="mb-4">
-    <h2 class="fw-bold mb-1" style="color: #2b303b;">Bem-vindo ao Adolêta Kids</h2>
-    <p class="text-muted">Gerencie seus eventos e contratos de forma rápida.</p>
+  <!-- Cabeçalho com Botão de Atualizar -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-1" style="color: #2b303b;">Bem-vindo ao Adolêta Kids</h2>
+      <p class="text-muted mb-0">Gerencie seus eventos e contratos de forma rápida.</p>
+    </div>
+    <div>
+      <button 
+        class="btn btn-outline-secondary d-flex align-items-center gap-2 px-3 py-2 shadow-sm border-0 bg-white" 
+        (click)="onForceRefresh()" 
+        [disabled]="loadingCounts || loadingFinance"
+        title="Atualizar dados do dia">
+        <span class="material-icons" [class.fa-spin]="loadingCounts || loadingFinance" style="font-size: 1.2rem;">refresh</span>
+        <span class="fw-semibold">Atualizar</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Cards de Indicadores (Dashboard Real) -->
-  <div class="row g-4 mb-5">
+  <!-- LINHA 1: Contadores de Status -->
+  <div class="row g-4 mb-4">
+    <!-- Em Aberto -->
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center h-100 d-flex flex-column justify-content-center">
         <h6 class="text-uppercase text-muted small fw-bold">Em Aberto</h6>
-        <h2 class="fw-bold text-warning display-6">{{ openContractsCount }}</h2>
+        <div *ngIf="loadingCounts" class="spinner-border spinner-border-sm text-warning" role="status"></div>
+        <h2 *ngIf="!loadingCounts" class="fw-bold text-warning display-6 mb-0">{{ openContractsCount }}</h2>
       </div>
     </div>
+
+    <!-- Quitados -->
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center h-100 d-flex flex-column justify-content-center">
         <h6 class="text-uppercase text-muted small fw-bold">Quitados</h6>
-        <h2 class="fw-bold text-success display-6">{{ paidContractsCount }}</h2>
+        <div *ngIf="loadingCounts" class="spinner-border spinner-border-sm text-success" role="status"></div>
+        <h2 *ngIf="!loadingCounts" class="fw-bold text-success display-6 mb-0">{{ paidContractsCount }}</h2>
       </div>
     </div>
+
+    <!-- Realizados -->
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm p-3 bg-white text-center">
+      <div class="card border-0 shadow-sm p-3 bg-white text-center h-100 d-flex flex-column justify-content-center">
         <h6 class="text-uppercase text-muted small fw-bold">Realizados</h6>
-        <h2 class="fw-bold text-primary display-6">{{ completedContractsCount }}</h2>
+        <div *ngIf="loadingCounts" class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <h2 *ngIf="!loadingCounts" class="fw-bold text-primary display-6 mb-0">{{ completedContractsCount }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINHA 2: Card Financeiro em Destaque -->
+  <div class="row g-4 mb-5">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-4 bg-white text-center d-flex flex-column justify-content-center border-start border-info border-5">
+        <h6 class="text-uppercase text-muted small fw-bold mb-1">A Receber no Mês</h6>
+        <div *ngIf="loadingFinance" class="spinner-border spinner-border-sm text-info mx-auto" role="status"></div>
+        <h2 *ngIf="!loadingFinance" class="fw-bold text-info display-5 mb-0">{{ receivableThisMonth | currency:'BRL' }}</h2>
       </div>
     </div>
   </div>
 
   <!-- Botões de Ação Rápida -->
-<div class="row g-4">
-  <div class="col-md-6">
-    <!-- O routerLink aqui é o que faz a mágica -->
-    <button routerLink="/new" class="btn btn-primary btn-lg w-100 py-4 shadow-sm border-0">
-      <span class="fw-bold fs-5">NOVO CONTRATO</span>
-    </button>
+  <div class="row g-4">
+    <div class="col-md-6">
+      <button routerLink="/new" class="btn btn-primary btn-lg w-100 py-4 shadow-sm border-0">
+        <span class="fw-bold fs-5">NOVO CONTRATO</span>
+      </button>
+    </div>
+    <div class="col-md-6">
+      <button routerLink="/list" class="btn btn-secondary btn-lg w-100 py-4 shadow-sm border-0">
+        <span class="fw-bold fs-5">LISTA DE CONTRATOS</span>
+      </button>
+    </div>
   </div>
-  <div class="col-md-6">
-    <!-- O routerLink aqui aponta para a rota de listagem -->
-    <button routerLink="/list" class="btn btn-secondary btn-lg w-100 py-4 shadow-sm border-0">
-      <span class="fw-bold fs-5">LISTA DE CONTRATOS</span>
-    </button>
-  </div>
-</div>
 </div>
