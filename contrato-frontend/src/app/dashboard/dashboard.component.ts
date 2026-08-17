@@ -117,80 +117,58 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
-   * Responsável por calcular o valor total a receber no mês (Regras 1 e 2)
+   * Responsável por calcular o valor total a receber no mês (Regras 1 e 2 baseadas na parcela)
    */
   private calculateMonthlyReceivable(contracts: any[]): void {
     let totalReceivable = 0;
     const now = new Date();
-    const currentMonth = now.getMonth(); 
-    const currentYear = now.getFullYear();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
 
-    if (contracts && contracts.length > 0) {
-      console.log("Inspecionando primeiro contrato detalhado:", contracts[0]);
-    }
-    
     contracts.forEach((contract) => {
       const ev = contract.event || contract;
-      let shouldAdd = false;
-      let valueToAdd = 0;
+      
+      // 1. Cálculo real do Saldo Pendente (Contrato - Pagamentos)
+      const totalContractValue = Number(ev.totalValue || contract.totalValue || 0);
+      const paymentsList = contract.payments || contract.pagamentos || ev.payments || ev.pagamentos || [];
+      const totalPaid = paymentsList.reduce((acc: number, p: any) => 
+        acc + Number(p.amount || p.valor || 0), 0);
+      
+      const realPendingAmount = Math.max(0, totalContractValue - totalPaid);
 
-      const eventDateStr = ev.eventDate || ev.dataEvento || contract.eventDate || contract.dataEvento;
-      const paymentsList = contract.payments || contract.pagamentos || ev.payments || ev.pagamentos;
-
-      // 1. Verificar data do evento no mês atual
-      if (eventDateStr) {
-        const cleanDateStr = typeof eventDateStr === 'string' ? eventDateStr.substring(0, 10) : eventDateStr;
-        const eventDate = new Date(cleanDateStr + 'T00:00:00');
-
-        if (!isNaN(eventDate.getTime())) {
-          const eventMonth = eventDate.getMonth();
-          const eventYear = eventDate.getFullYear();
-
-          if (eventMonth === currentMonth && eventYear === currentYear) {
-            shouldAdd = true;
-            if (paymentsList && Array.isArray(paymentsList) && paymentsList.length > 0) {
-              const sortedPayments = [...paymentsList].sort((a, b) => 
-                new Date(b.paymentDate || b.data || 0).getTime() - new Date(a.paymentDate || a.data || 0).getTime()
-              );
-              valueToAdd = Number(sortedPayments[0].pendingAmount || sortedPayments[0].valorPendente || 0);
-            } else {
-              valueToAdd = Number(ev.pendingAmount || ev.valorPendente || ev.totalValue || contract.totalValue || 0);
-            }
-          }
-        }
-      }
-
-      // 2. Verificar último pagamento há 30 dias ou mais
-      if (!shouldAdd && paymentsList && Array.isArray(paymentsList) && paymentsList.length > 0) {
+      // 2. Regra do Pagamento Recente
+      // Se o cliente pagou algo nos últimos 30 dias, ele não entra na conta do mês.
+      let pagouRecente = false;
+      if (paymentsList.length > 0) {
         const sortedPayments = [...paymentsList].sort((a, b) => 
           new Date(b.paymentDate || b.data || 0).getTime() - new Date(a.paymentDate || a.data || 0).getTime()
         );
+        const lastPaymentDate = new Date(sortedPayments[0].paymentDate || sortedPayments[0].data || 0);
+        const diffDays = (now.getTime() - lastPaymentDate.getTime()) / (1000 * 3600 * 24);
         
-        const lastPayment = sortedPayments[0];
-        const lastPaymentDateStr = lastPayment.paymentDate || lastPayment.data;
-
-        if (lastPaymentDateStr) {
-          const cleanPayDateStr = typeof lastPaymentDateStr === 'string' ? lastPaymentDateStr.substring(0, 10) : lastPaymentDateStr;
-          const lastPaymentDate = new Date(cleanPayDateStr + 'T00:00:00');
-
-          if (!isNaN(lastPaymentDate.getTime())) {
-            const diffTime = now.getTime() - lastPaymentDate.getTime();
-            const diffDays = diffTime / (1000 * 3600 * 24);
-
-            if (diffDays >= 30) {
-              shouldAdd = true;
-              valueToAdd = Number(ev.installmentValue || ev.valorParcela || contract.installmentValue || 0);
-            }
-          }
+        if (diffDays <= 30) {
+          pagouRecente = true;
         }
       }
 
-      if (shouldAdd) {
-        totalReceivable += valueToAdd;
+      
+      // 3. Regra de Soma
+      const eventDateStr = ev.eventDate || ev.dataEvento || contract.eventDate || contract.dataEvento;
+      const eventDate = eventDateStr ? new Date(eventDateStr.substring(0, 10) + 'T00:00:00') : null;
+      
+      // Valor da parcela (se existir)
+      const valorParcela = Number(ev.installmentValue || ev.valorParcela || 0);
+
+      if (eventDate && eventDate >= now && eventDate <= thirtyDaysFromNow) {
+        // Evento próximo: soma o saldo real pendente
+        totalReceivable += realPendingAmount;
+      } else {
+        if (pagouRecente || realPendingAmount <= 0) return; 
+        // Evento longe: soma a parcela (limitada ao que falta pagar)
+        totalReceivable += Math.min(valorParcela, realPendingAmount);
       }
     });
 
-    console.log('=== TOTAL A RECEBER CALCULADO:', totalReceivable, '===');
     this.receivableThisMonth = totalReceivable;
   }
 

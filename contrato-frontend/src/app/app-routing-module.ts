@@ -1,12 +1,31 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 import { ContractListComponent } from './contract-list/contract-list.component';
 import { ContractFormComponent } from './contract-form/contract-form.component';
-import { DashboardComponent } from './dashboard/dashboard.component'; // <-- Importe o componente do dashboard
+import { authGuard } from './login/auth.guard'; // Iremos criar abaixo
 
 export const routes: Routes = [
-  { path: '', component: DashboardComponent }, // O Dashboard abre na raiz do sistema
-  { path: 'list', component: ContractListComponent },
-  { path: 'new', component: ContractFormComponent },
-  { path: 'edit/:id', component: ContractFormComponent },
-  { path: '**', redirectTo: '' } // Rota coringa redireciona para o dashboard
+  { path: 'login', component: LoginComponent },
+  { 
+    path: '', 
+    component: DashboardComponent, 
+    canActivate: [authGuard] // Protege o Dashboard
+  },
+  { 
+    path: 'list', 
+    component: ContractListComponent, 
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'new', 
+    component: ContractFormComponent, 
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'edit/:id', 
+    component: ContractFormComponent, 
+    canActivate: [authGuard] 
+  },
+  { path: '**', redirectTo: '' }
 ];
