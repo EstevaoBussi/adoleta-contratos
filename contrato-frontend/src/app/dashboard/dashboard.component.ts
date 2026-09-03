@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ContractService } from '../services/contract.service';
+import { DashboardStateService } from '../services/dashboard-state.service';
 
 // Importações do Angular Material
 import { MatCardModule } from '@angular/material/card';
@@ -22,6 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class DashboardComponent implements OnInit {
   private contractService = inject(ContractService);
+  private dashboardState = inject(DashboardStateService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
 
@@ -33,8 +35,15 @@ export class DashboardComponent implements OnInit {
   openContractsCount: number = 0;
   paidContractsCount: number = 0;
   completedContractsCount: number = 0;
-  receivableThisMonth: number = 0;
   
+  // Indicadores financeiros separados
+  installmentsReceivableThisMonth: number = 0; 
+  pendingReceivableThisMonth: number = 0;    
+
+  // Listas de composição para a tela de detalhes
+  contractsForInstallmentsMonth: any[] = [];
+  contractsForPendingMonth: any[] = [];
+
   // Estados de carregamento separados
   loadingCounts: boolean = true;
   loadingFinance: boolean = true;
@@ -72,7 +81,7 @@ export class DashboardComponent implements OnInit {
       const cachedData = this.getCachedData();
       if (cachedData) {
         console.log('=== USANDO DADOS FINANCEIROS DO CACHE DIÁRIO ===');
-        this.calculateMonthlyReceivable(cachedData);
+        this.calculateFinancialMetrics(cachedData);
         this.loadingFinance = false;
         this.cdr.detectChanges();
         return;
@@ -84,7 +93,7 @@ export class DashboardComponent implements OnInit {
     this.contractService.search(undefined, 'ABERTO', true).subscribe({
       next: (contracts: any[]) => {
         this.setCachedData(contracts);
-        this.calculateMonthlyReceivable(contracts);
+        this.calculateFinancialMetrics(contracts);
         this.loadingFinance = false;
         this.cdr.detectChanges();
       },
@@ -117,13 +126,33 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
-   * Responsável por calcular o valor total a receber no mês (Regras 1 e 2 baseadas na parcela)
+   * Responsável por calcular separadamente as parcelas do mês e o saldo pendente do ciclo (Dia 6 ao Dia 5)
    */
-  private calculateMonthlyReceivable(contracts: any[]): void {
-    let totalReceivable = 0;
+  private calculateFinancialMetrics(contracts: any[]): void {
+    let totalInstallments = 0;
+    let totalPendingThisMonth = 0;
+
+    // Limpa as listas de composição a cada novo cálculo
+    this.contractsForInstallmentsMonth = [];
+    this.contractsForPendingMonth = [];
+
     const now = new Date();
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+    // Definição do ciclo do mês atual (do dia 6 do mês atual até o dia 5 do mês seguinte)
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const dayToday = now.getDate();
+
+    let startCycleDate: Date;
+    let endCycleDate: Date;
+
+    if (dayToday >= 6) {
+      startCycleDate = new Date(currentYear, currentMonth, 6, 0, 0, 0);
+      endCycleDate = new Date(currentYear, currentMonth + 1, 5, 23, 59, 59);
+    } else {
+      startCycleDate = new Date(currentYear, currentMonth - 1, 6, 0, 0, 0);
+      endCycleDate = new Date(currentYear, currentMonth, 5, 23, 59, 59);
+    }
 
     contracts.forEach((contract) => {
       const ev = contract.event || contract;
@@ -136,40 +165,59 @@ export class DashboardComponent implements OnInit {
       
       const realPendingAmount = Math.max(0, totalContractValue - totalPaid);
 
-      // 2. Regra do Pagamento Recente
-      // Se o cliente pagou algo nos últimos 30 dias, ele não entra na conta do mês.
-      let pagouRecente = false;
+      // Se já estiver quitado/zerado, pula para o próximo
+      if (realPendingAmount <= 0) return;
+
+      // 2. Verificação da Data do Evento
+      const eventDateStr = ev.eventDate || ev.dataEvento || contract.eventDate || contract.dataEvento;
+      const eventDate = eventDateStr ? new Date(eventDateStr.substring(0, 10) + 'T00:00:00') : null;
+
+      // Verifica se o evento está dentro do ciclo do mês (Dia 6 ao Dia 5)
+      const isEventInCurrentCycle = eventDate && eventDate >= startCycleDate && eventDate <= endCycleDate;
+
+      // 3. Verificação do Último Pagamento dentro do ciclo atual (Dia 6 ao Dia 5)
+      let installmentAlreadyPaidInCycle = false;
       if (paymentsList.length > 0) {
         const sortedPayments = [...paymentsList].sort((a, b) => 
           new Date(b.paymentDate || b.data || 0).getTime() - new Date(a.paymentDate || a.data || 0).getTime()
         );
-        const lastPaymentDate = new Date(sortedPayments[0].paymentDate || sortedPayments[0].data || 0);
-        const diffDays = (now.getTime() - lastPaymentDate.getTime()) / (1000 * 3600 * 24);
-        
-        if (diffDays <= 30) {
-          pagouRecente = true;
+        const lastPaymentDateStr = sortedPayments[0].paymentDate || sortedPayments[0].data || 0;
+        const lastPaymentDate = new Date(lastPaymentDateStr);
+
+        if (lastPaymentDate >= startCycleDate && lastPaymentDate <= endCycleDate) {
+          installmentAlreadyPaidInCycle = true;
         }
       }
 
-      
-      // 3. Regra de Soma
-      const eventDateStr = ev.eventDate || ev.dataEvento || contract.eventDate || contract.dataEvento;
-      const eventDate = eventDateStr ? new Date(eventDateStr.substring(0, 10) + 'T00:00:00') : null;
-      
-      // Valor da parcela (se existir)
-      const valorParcela = Number(ev.installmentValue || ev.valorParcela || 0);
+      // A) Saldo Pendente do Mês: Soma se o evento estiver no ciclo do mês atual
+      if (isEventInCurrentCycle) {
+        totalPendingThisMonth += realPendingAmount;
+        this.contractsForPendingMonth.push(contract);
+      }
 
-      if (eventDate && eventDate >= now && eventDate <= thirtyDaysFromNow) {
-        // Evento próximo: soma o saldo real pendente
-        totalReceivable += realPendingAmount;
-      } else {
-        if (pagouRecente || realPendingAmount <= 0) return; 
-        // Evento longe: soma a parcela (limitada ao que falta pagar)
-        totalReceivable += Math.min(valorParcela, realPendingAmount);
+      // B) Parcelas a Receber no Mês: 
+      // Compõe com todos os contratos que não pagaram no ciclo e cujo evento não cai no saldo pendente do mês
+      if (!isEventInCurrentCycle && !installmentAlreadyPaidInCycle) {
+        const valorParcela = Number(ev.installmentValue || ev.valorParcela || 0);
+        totalInstallments += Math.min(valorParcela, realPendingAmount);
+        this.contractsForInstallmentsMonth.push(contract); // Agora guarda exatamente os contratos que compõem este valor
       }
     });
 
-    this.receivableThisMonth = totalReceivable;
+    this.installmentsReceivableThisMonth = totalInstallments;
+    this.pendingReceivableThisMonth = totalPendingThisMonth;
+  }
+
+  /**
+   * Navega para a tela de detalhes passando a respectiva lista de contratos via serviço de estado
+   */
+  viewContractDetails(type: 'installments' | 'pending'): void {
+    if (type === 'installments') {
+      this.dashboardState.setContracts('Parcelas a Receber no Mês', this.contractsForInstallmentsMonth);
+    } else {
+      this.dashboardState.setContracts('Saldo Pendente Total (Ciclo do Mês)', this.contractsForPendingMonth);
+    }
+    this.router.navigate(['/financial-details']);
   }
 
   /**

@@ -3,14 +3,20 @@ import { LoginComponent } from './login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ContractListComponent } from './contract-list/contract-list.component';
 import { ContractFormComponent } from './contract-form/contract-form.component';
-import { authGuard } from './login/auth.guard'; // Iremos criar abaixo
+import { FinancialDetailsComponent } from './financial-details/financial-details.component'; // Importe o novo componente
+import { authGuard } from './login/auth.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { 
     path: '', 
     component: DashboardComponent, 
-    canActivate: [authGuard] // Protege o Dashboard
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'financial-details', 
+    component: FinancialDetailsComponent, 
+    canActivate: [authGuard] // Protegido pelo mesmo guard das outras telas do sistema
   },
   { 
     path: 'list', 

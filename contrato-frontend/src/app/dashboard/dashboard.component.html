@@ -47,13 +47,31 @@
     </div>
   </div>
 
-  <!-- LINHA 2: Card Financeiro em Destaque -->
+  <!-- LINHA 2: Cards Financeiros Separados e Clicáveis -->
   <div class="row g-4 mb-5">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm p-4 bg-white text-center d-flex flex-column justify-content-center border-start border-info border-5">
-        <h6 class="text-uppercase text-muted small fw-bold mb-1">A Receber no Mês</h6>
+    <!-- Parcelas a Receber no Mês -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-4 bg-white text-center d-flex flex-column justify-content-center border-start border-info border-5 h-100 position-relative" 
+           style="cursor: pointer;" (click)="viewContractDetails('installments')" title="Clique para ver a composição dos contratos">
+        <div class="position-absolute top-0 end-0 p-3 text-info">
+          <span class="material-icons">visibility</span>
+        </div>
+        <h6 class="text-uppercase text-muted small fw-bold mb-1">Parcelas a Receber no Mês</h6>
         <div *ngIf="loadingFinance" class="spinner-border spinner-border-sm text-info mx-auto" role="status"></div>
-        <h2 *ngIf="!loadingFinance" class="fw-bold text-info display-5 mb-0">{{ receivableThisMonth | currency:'BRL' }}</h2>
+        <h2 *ngIf="!loadingFinance" class="fw-bold text-info display-5 mb-0">{{ installmentsReceivableThisMonth | currency:'BRL' }}</h2>
+      </div>
+    </div>
+
+    <!-- Saldo Pendente Total -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-4 bg-white text-center d-flex flex-column justify-content-center border-start border-warning border-5 h-100 position-relative" 
+           style="cursor: pointer;" (click)="viewContractDetails('pending')" title="Clique para ver a composição dos contratos">
+        <div class="position-absolute top-0 end-0 p-3 text-warning">
+          <span class="material-icons">visibility</span>
+        </div>
+        <h6 class="text-uppercase text-muted small fw-bold mb-1">Saldo Pendente Total</h6>
+        <div *ngIf="loadingFinance" class="spinner-border spinner-border-sm text-warning mx-auto" role="status"></div>
+        <h2 *ngIf="!loadingFinance" class="fw-bold text-warning display-5 mb-0">{{ pendingReceivableThisMonth | currency:'BRL' }}</h2>
       </div>
     </div>
   </div>
